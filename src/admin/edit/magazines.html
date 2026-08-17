@@ -188,15 +188,18 @@
         if (txt) txt.textContent = text || '';
     }
 
-    // Uint8Array → base64（分块处理，避免栈溢出）
+    // Uint8Array → base64（用 FileReader 避免栈溢出）
     function uint8ToBase64(bytes) {
-        let binary = '';
-        const len = bytes.byteLength;
-        const chunk = 0x8000; // 32KB
-        for (let i = 0; i < len; i += chunk) {
-            binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
-        }
-        return btoa(binary);
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => {
+                // result 格式: "data:application/octet-stream;base64,XXXXX"
+                const base64 = String(reader.result).split(',')[1];
+                resolve(base64);
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(new Blob([bytes]));
+        });
     }
 
     async function onPdfSelected(e) {
@@ -231,10 +234,10 @@
             const targetPath = `public/assets/magazine-${urlKey}-${monthStr}.pdf`;
 
             setProgress(50, '正在上传到 GitHub...');
-            // 上传到 GitHub（用循环转 base64，避免大文件栈溢出）
+            // 上传到 GitHub（用 FileReader 转 base64，避免栈溢出）
             const c = GitHub.getConfig();
             const fileSha = await GitHub.getFileContent(targetPath).then(r => r.sha).catch(() => null);
-            const base64 = uint8ToBase64(compressed);
+            const base64 = await uint8ToBase64(compressed);
             const body = {
                 message: `📎 上传杂志 PDF: ${file.name} → ${targetPath}`,
                 content: base64,
