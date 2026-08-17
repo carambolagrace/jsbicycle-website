@@ -188,6 +188,17 @@
         if (txt) txt.textContent = text || '';
     }
 
+    // Uint8Array → base64（分块处理，避免栈溢出）
+    function uint8ToBase64(bytes) {
+        let binary = '';
+        const len = bytes.byteLength;
+        const chunk = 0x8000; // 32KB
+        for (let i = 0; i < len; i += chunk) {
+            binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+        }
+        return btoa(binary);
+    }
+
     async function onPdfSelected(e) {
         const file = e.target.files[0];
         if (!file) return;
@@ -220,12 +231,13 @@
             const targetPath = `public/assets/magazine-${urlKey}-${monthStr}.pdf`;
 
             setProgress(50, '正在上传到 GitHub...');
-            // 上传到 GitHub
+            // 上传到 GitHub（用循环转 base64，避免大文件栈溢出）
             const c = GitHub.getConfig();
             const fileSha = await GitHub.getFileContent(targetPath).then(r => r.sha).catch(() => null);
+            const base64 = uint8ToBase64(compressed);
             const body = {
                 message: `📎 上传杂志 PDF: ${file.name} → ${targetPath}`,
-                content: btoa(String.fromCharCode(...compressed)),
+                content: base64,
                 ...(fileSha ? { sha: fileSha } : {})
             };
             await GitHub.api('PUT', `/repos/${c.owner}/${c.repo}/contents/${encodeURI(targetPath)}`, body);
