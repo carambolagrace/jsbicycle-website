@@ -2,28 +2,53 @@
  * Admin 端 PDF 处理工具
  * 客户端 PDF 压缩（保留画质、移除冗余数据）+ 上传辅助
  *
- * 依赖：pdf-lib（通过 CDN 引入到 Admin 页面）
+ * 依赖：pdf-lib + pdf.js（通过 CDN 引入到 Admin 页面）
  */
 const PDFHelper = (() => {
+    // CDN URLs - 使用稳定的 pdf-lib 和 pdf.js 版本
+    const PDFLIB_URL = 'https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.esm.js';
+    const PDFJS_URL = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js';
+    const PDFJS_WORKER_URL = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+
     /**
-     * 加载 PDFDocument（动态 import pdf-lib）
+     * 加载 pdf-lib
      */
     async function loadPdfLib() {
-        return await import('https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/+esm');
+        return await import(PDFLIB_URL);
     }
 
     /**
-     * 客户端压缩 PDF — 保持画质、减小文件
-     * 策略：
-     *   1. 移除元数据（标题、作者、生产者、关键字等）
-     *   2. 启用对象流（useObjectStreams = true）
-     *   3. 不重新渲染每页（保证画质）
+     * 加载 pdf.js 全局对象（通过 CDN script 标签）
      */
-    async function compressPdf(arrayBuffer, options = {}) {
+    async function loadPdfJs() {
+        return new Promise((resolve, reject) => {
+            if (window.pdfjsLib) {
+                resolve(window.pdfjsLib);
+                return;
+            }
+            const script = document.createElement('script');
+            script.src = PDFJS_URL;
+            script.onload = () => {
+                if (window.pdfjsLib) {
+                    window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER_URL;
+                    resolve(window.pdfjsLib);
+                } else {
+                    reject(new Error('pdfjsLib not loaded'));
+                }
+            };
+            script.onerror = () => reject(new Error('Failed to load pdf.js script'));
+            document.head.appendChild(script);
+        });
+    }
+
+    /**
+     * 阶段 1：轻度压缩（移除元数据 + 启用对象流）
+     * 适用于所有 PDF。保留画质。
+     */
+    async function compressPdf(arrayBuffer) {
         const { PDFDocument } = await loadPdfLib();
         const pdfDoc = await PDFDocument.load(arrayBuffer, { ignoreEncryption: true });
 
-        // 清理元数据
         try {
             pdfDoc.setTitle('');
             pdfDoc.setAuthor('');
@@ -31,103 +56,114 @@ const PDFHelper = (() => {
             pdfDoc.setKeywords([]);
             pdfDoc.setProducer('jbbea-admin');
             pdfDoc.setCreator('jbbea-admin');
-            pdfDoc.removePageRefs && pdfDoc.removePageRefs();
-        } catch (e) {
-            // 某些 PDF 可能没设置这些字段
-        }
+        } catch (e) { /* 忽略元数据错误 */ }
 
-        // 保存（启用对象流压缩）
-        const bytes = await pdfDoc.save({
+        return await pdfDoc.save({
             useObjectStreams: true,
             addDefaultPage: false,
-            objectsPerTick: 50,
-            updateFieldAppearances: false
+            objectsPerTick: 50
         });
-        return bytes;
     }
 
     /**
-     * 进一步压缩 — 重新渲染每页为 JPEG（适合扫描版或大量图片的 PDF）
-     * 保留画质（quality: 0.92 — 接近原画质）
-     * 注意：这个比较慢（每页 ~100-200ms），仅在 compressPdf 后仍 > 5 MB 时使用
+     * 阶段 2：深度压缩（重新渲染为 JPEG 图像）
+     * 仅在阶段 1 后仍 > 5 MB 时使用
+     * 注意：缓慢（每页 ~200-500ms），但压缩比好
      */
     async function recompressPdf(arrayBuffer, quality = 0.92, scale = 1.5) {
-        // 用 pdf.js 渲染每一页 → Canvas → JPEG → 重新打包
-        const pdfjs = await import('https://cdn.jsdelivr.net/npm/pdfjs-dist@4.0.379/+esm');
-        pdfjs.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.0.379/build/pdf.worker.min.mjs';
-
+        const pdfjs = await loadPdfJs();
         const { PDFDocument } = await loadPdfLib();
 
-        // 1. 加载原 PDF
-        const pdf = await pdfjs.getDocument({ data: arrayBuffer.slice(0) }).promise;
+        // 加载 PDF
+        const loadingTask = pdfjs.getDocument({ data: arrayBuffer });
+        const pdf = await loadingTask.promise;
         const pageCount = pdf.numPages;
-        console.log(`Recompressing ${pageCount} pages at quality ${quality}...`);
+        console.log(`[PDF] 共 ${pageCount} 页，开始重渲染（quality=${quality}）...`);
 
-        // 2. 创建新 PDF
         const newPdf = await PDFDocument.create();
 
         for (let i = 1; i <= pageCount; i++) {
             const page = await pdf.getPage(i);
             const viewport = page.getViewport({ scale });
+
+            // 创建离屏 canvas
             const canvas = document.createElement('canvas');
-            canvas.width = viewport.width;
-            canvas.height = viewport.height;
+            canvas.width = Math.floor(viewport.width);
+            canvas.height = Math.floor(viewport.height);
             const ctx = canvas.getContext('2d');
-            await page.render({ canvasContext: ctx, viewport, canvas }).promise;
+
+            // 渲染（使用 pdf.js 3.x 标准 API：仅传 canvasContext + viewport）
+            await page.render({
+                canvasContext: ctx,
+                viewport: viewport
+            }).promise;
 
             // 转 JPEG
-            const jpegBlob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', quality));
+            const jpegBlob = await new Promise((resolve) => {
+                canvas.toBlob(resolve, 'image/jpeg', quality);
+            });
             const jpegBytes = new Uint8Array(await jpegBlob.arrayBuffer());
             const jpegImage = await newPdf.embedJpg(jpegBytes);
 
-            // 添加新页面
-            const newPage = newPdf.addPage([viewport.width / scale * 1.4, viewport.height / scale * 1.4]);
-            // 注意：viewport 的 width 是按 scale 缩放后的像素，但 PDF 页面尺寸单位是点 (1pt = 1/72 inch)
-            // 这里直接用 viewport 像素对应 PDF 点（简化）
+            // 添加新页面（用原 viewport 尺寸，单位 pt）
+            const newPage = newPdf.addPage([viewport.width, viewport.height]);
             newPage.drawImage(jpegImage, {
                 x: 0, y: 0,
-                width: newPage.getWidth(),
-                height: newPage.getHeight()
+                width: viewport.width,
+                height: viewport.height
             });
-            console.log(`  Page ${i}/${pageCount} done`);
+
+            console.log(`[PDF] 第 ${i}/${pageCount} 页完成`);
         }
 
         return await newPdf.save({ useObjectStreams: true });
     }
 
     /**
-     * 智能压缩：先尝试轻度压缩，仍太大时深度压缩
+     * 智能压缩策略：
+     *   1. 轻度压缩（保画质）
+     *   2. 如果仍 > 5MB → 重渲染为 JPEG（92% 画质）
+     *   3. 如果仍 > 5MB → 重渲染为 JPEG（85% 画质）
      */
     async function smartCompress(arrayBuffer) {
         const originalSize = arrayBuffer.byteLength;
-        console.log(`原始大小: ${(originalSize / 1024 / 1024).toFixed(2)} MB`);
+        console.log(`[PDF] 原始大小: ${(originalSize / 1024 / 1024).toFixed(2)} MB`);
 
-        // 阶段 1: 轻度压缩（移除元数据 + 启用对象流）
-        let result = await compressPdf(arrayBuffer);
-        let ratio = result.byteLength / originalSize;
-        console.log(`轻度压缩后: ${(result.byteLength / 1024 / 1024).toFixed(2)} MB (${(ratio * 100).toFixed(0)}%)`);
-
-        // 阶段 2: 如果仍然 > 5 MB，用图像重渲染
-        if (result.byteLength > 5 * 1024 * 1024) {
-            console.log('文件仍较大，启动深度压缩...');
-            result = await recompressPdf(arrayBuffer, 0.92, 1.5);
-            ratio = result.byteLength / originalSize;
-            console.log(`深度压缩后: ${(result.byteLength / 1024 / 1024).toFixed(2)} MB (${(ratio * 100).toFixed(0)}%)`);
+        // 阶段 1
+        let result;
+        try {
+            result = await compressPdf(arrayBuffer);
+            console.log(`[PDF] 轻度压缩后: ${(result.byteLength / 1024 / 1024).toFixed(2)} MB`);
+        } catch (e) {
+            console.warn('[PDF] 轻度压缩失败，跳过:', e);
+            result = new Uint8Array(arrayBuffer);
         }
 
-        // 阶段 3: 如果仍然 > 5 MB，降低画质
+        // 阶段 2：仅在 > 5 MB 时
         if (result.byteLength > 5 * 1024 * 1024) {
-            console.log('再次降低画质...');
-            result = await recompressPdf(arrayBuffer, 0.85, 1.3);
-            console.log(`最终: ${(result.byteLength / 1024 / 1024).toFixed(2)} MB`);
+            try {
+                console.log('[PDF] 文件仍较大，深度压缩（92% 画质）...');
+                result = await recompressPdf(arrayBuffer, 0.92, 1.5);
+                console.log(`[PDF] 深度压缩后: ${(result.byteLength / 1024 / 1024).toFixed(2)} MB`);
+            } catch (e) {
+                console.warn('[PDF] 深度压缩失败，使用轻度压缩结果:', e);
+            }
+        }
+
+        // 阶段 3：仍 > 5 MB 时降低画质
+        if (result.byteLength > 5 * 1024 * 1024) {
+            try {
+                console.log('[PDF] 仍较大，降低画质到 85%...');
+                result = await recompressPdf(arrayBuffer, 0.85, 1.3);
+                console.log(`[PDF] 最终: ${(result.byteLength / 1024 / 1024).toFixed(2)} MB`);
+            } catch (e) {
+                console.warn('[PDF] 二次压缩失败:', e);
+            }
         }
 
         return result;
     }
 
-    /**
-     * 读取文件为 ArrayBuffer
-     */
     async function fileToArrayBuffer(file) {
         return await file.arrayBuffer();
     }
