@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GitHub 配置 - 后台管理系统</title>
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="app-header">
+      <div class="brand">JBEA Admin <span>GitHub 自动部署配置</span></div>
+      <div class="spacer"></div>
+      <a href="dashboard.html">← 返回仪表盘</a>
+      <a href="../index.html" target="_blank">查看网站 ↗</a>
+      <button onclick="AUTH.logout()">退出登录</button>
+    </header>
+    <div class="app-main">
+      <main class="app-content" style="grid-column: 1 / -1;">
+        <h1 class="page-title">🔗 GitHub 自动部署配置</h1>
+        <p class="page-subtitle">连接 GitHub 仓库后，Admin 编辑可一键发布到网站（自动触发 Netlify 部署）。</p>
+
+        <div class="card">
+          <div class="card-head">
+            <h3>配置 GitHub 访问</h3>
+            <span id="statusBadge" class="tag">未配置</span>
+          </div>
+          <div class="card-body">
+            <div class="quick-help" style="background:#fff7e6;border-left-color:#c87b13">
+              <strong>使用步骤：</strong>
+              <br>① 在 GitHub 创建空仓库（推荐私有仓库）
+              <br>② 创建 GitHub Personal Access Token (classic)，勾选 <code>repo</code> 权限
+              <br>③ 在下方填入仓库信息和 Token
+              <br>④ 点"测试连接"，确认 Token 可访问该仓库
+              <br>⑤ 连接成功后，去任何编辑页点"📤 发布到网站"按钮
+            </div>
+
+            <form id="configForm">
+              <div class="field-row">
+                <div class="field">
+                  <label>GitHub 用户名（Owner）</label>
+                  <input type="text" id="owner" placeholder="carambolagrace" required>
+                </div>
+                <div class="field">
+                  <label>仓库名（Repo）</label>
+                  <input type="text" id="repo" placeholder="jsbicycle-website" required>
+                </div>
+              </div>
+              <div class="field">
+                <label>默认分支</label>
+                <input type="text" id="branch" placeholder="main" value="main">
+              </div>
+              <div class="field">
+                <label>GitHub Personal Access Token</label>
+                <input type="password" id="token" placeholder="ghp_xxxxxxxxxx" required>
+                <div class="help">需 <code>repo</code> 权限（完整仓库读写）。在 <a href="https://github.com/settings/tokens/new" target="_blank">GitHub Settings → Developer settings → PAT</a> 创建。</div>
+              </div>
+              <div class="btn-group mt-4">
+                <button type="submit" class="btn btn-primary">保存配置</button>
+                <button type="button" class="btn" onclick="testConnection()">测试连接</button>
+                <button type="button" class="btn btn-danger" onclick="GitHub.clearConfig(); loadConfig();">清除配置</button>
+              </div>
+            </form>
+
+            <div id="testResult" class="mt-4"></div>
+          </div>
+        </div>
+
+        <div class="card mt-4">
+          <div class="card-head">
+            <h3>📤 一键发布全部</h3>
+          </div>
+          <div class="card-body">
+            <p>将所有本地编辑推送到 GitHub，触发 Netlify 自动部署。约 2-5 分钟生效。</p>
+            <div class="quick-help">
+              <strong>发布范围：</strong>
+              <ul style="margin:6px 0;padding-left:20px">
+                <li>news + newsDetail → src/data/news.js</li>
+                <li>site + navigation + footer → src/data/site.js</li>
+                <li>pages（包含 events / branches / wuxi-office / magazines / standards） → src/data/pages.js</li>
+              </ul>
+            </div>
+            <div class="btn-group mt-4">
+              <button class="btn btn-primary" onclick="publishAll()">📤 一键发布全部</button>
+              <button class="btn" onclick="publishNewsOnly()">仅发布新闻</button>
+            </div>
+            <div id="publishLog" class="mt-4"></div>
+          </div>
+        </div>
+
+        <div class="card mt-4">
+          <div class="card-head">
+            <h3>📖 Netlify 关联配置（一次性）</h3>
+          </div>
+          <div class="card-body" style="font-size:13.5px;line-height:1.8;color:#404f63">
+            <p>GitHub 配置完成后，请在 <a href="https://app.netlify.com/projects/beautiful-mandazi-9d9cd3" target="_blank">Netlify 项目设置</a> 中：</p>
+            <p>① 进入 <strong>Site settings → Build & deploy → Continuous deployment</strong></p>
+            <p>② 把部署方式从 "Drag and drop" 改为 <strong>GitHub</strong></p>
+            <p>③ 选择您刚创建的仓库</p>
+            <p>④ 配置 build 设置：</p>
+            <p style="padding-left:24px"><strong>Base directory:</strong>（留空）</p>
+            <p style="padding-left:24px"><strong>Build command:</strong> <code>npm run build</code></p>
+            <p style="padding-left:24px"><strong>Publish directory:</strong> <code>dist</code></p>
+            <p>⑤ 开启 <strong>Auto-deploy</strong>：让每次 push main 分支都自动部署</p>
+            <p>⑥ 以后每次在 Admin 点"发布"，都会自动触发新版本部署 🎉</p>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="js/auth.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/github.js"></script>
+  <script>
+    AUTH.guard();
+
+    function loadConfig() {
+        const c = GitHub.getConfig();
+        const badge = document.getElementById('statusBadge');
+        if (c && c.token && c.owner && c.repo) {
+            badge.className = 'tag tag-green';
+            badge.textContent = '✓ 已配置';
+            document.getElementById('owner').value = c.owner;
+            document.getElementById('repo').value = c.repo;
+            document.getElementById('branch').value = c.branch || 'main';
+            // 不显示 token
+            document.getElementById('token').value = c.token ? '••••••••' + c.token.slice(-4) : '';
+        } else {
+            badge.className = 'tag';
+            badge.textContent = '未配置';
+        }
+    }
+
+    document.getElementById('configForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const cfg = {
+            owner: document.getElementById('owner').value.trim(),
+            repo: document.getElementById('repo').value.trim(),
+            branch: document.getElementById('branch').value.trim() || 'main',
+            token: document.getElementById('token').value.trim()
+        };
+        if (!cfg.owner || !cfg.repo || !cfg.token) {
+            UI.toast('请填写所有字段', 'error');
+            return;
+        }
+        GitHub.setConfig(cfg);
+        UI.toast('配置已保存（仅保存在浏览器本地）', 'success');
+        loadConfig();
+    });
+
+    async function testConnection() {
+        const owner = document.getElementById('owner').value.trim();
+        const repo = document.getElementById('repo').value.trim();
+        const branch = document.getElementById('branch').value.trim() || 'main';
+        const token = document.getElementById('token').value.trim();
+        if (!owner || !repo || !token) {
+            UI.toast('请先填写完整信息', 'error');
+            return;
+        }
+        // 临时写入测试
+        GitHub.setConfig({ owner, repo, branch, token });
+        const result = document.getElementById('testResult');
+        result.innerHTML = '<div class="card-body" style="background:#fafbfc">测试中...</div>';
+        try {
+            const data = await GitHub.api('GET', `/repos/${owner}/${repo}`);
+            const html = `
+                <div class="card mt-2" style="background:#e8f5ed;border-color:#2d8c4d">
+                    <div class="card-body" style="color:#1e3a5f">
+                        <strong>✓ 连接成功！</strong><br>
+                        仓库：<code>${data.full_name}</code><br>
+                        默认分支：<code>${data.default_branch}</code><br>
+                        私有仓库：${data.private ? '是' : '否'}<br>
+                        权限验证：<span class="tag tag-green">通过</span>
+                    </div>
+                </div>`;
+            result.innerHTML = html;
+            UI.toast('连接成功！', 'success');
+        } catch (e) {
+            result.innerHTML = `
+                <div class="card mt-2" style="background:#fff1f0;border-color:#d63d3d">
+                    <div class="card-body" style="color:#c0382b">
+                        <strong>✗ 连接失败</strong><br>
+                        ${e.message}<br>
+                        <small>请检查：① Token 正确；② Token 含 repo 权限；③ 仓库名正确；④ 仓库已创建</small>
+                    </div>
+                </div>`;
+            UI.toast('连接失败：' + e.message, 'error');
+        }
+    }
+
+    async function publishAll() {
+        if (!confirm('确定发布所有编辑到网站？\n这会触发 GitHub commit + Netlify 自动部署（约 2-5 分钟生效）')) return;
+        await Store.loadAll();
+        const log = document.getElementById('publishLog');
+        log.innerHTML = '<div class="card-body" style="background:#f0f5fb">⏳ 发布中...</div>';
+        try {
+            const results = await GitHub.publishAll();
+            const success = results.filter(r => r.ok);
+            const failed = results.filter(r => !r.ok);
+            log.innerHTML = `
+                <div class="card mt-2" style="background:#e8f5ed;border-color:#2d8c4d">
+                    <div class="card-body">
+                        <strong>✓ 发布完成！</strong><br>
+                        成功 ${success.length} 个：${success.map(s => s.name).join(', ')}<br>
+                        ${failed.length ? '失败 ' + failed.length + ' 个：' + failed.map(f => `${f.name} (${f.error.slice(0,80)})`).join('<br>') : ''}
+                        <br><br>
+                        🚀 Netlify 已自动开始构建部署。请在 <a href="https://app.netlify.com/projects/beautiful-mandazi-9d9cd3" target="_blank">Netlify Dashboard</a> 查看进度。
+                    </div>
+                </div>`;
+            UI.toast('发布成功！Netlify 正在部署', 'success');
+        } catch (e) {
+            log.innerHTML = `<div class="card mt-2" style="background:#fff1f0;border-color:#d63d3d"><div class="card-body" style="color:#c0382b"><strong>✗ 发布失败</strong><br>${e.message}</div></div>`;
+            UI.toast('发布失败：' + e.message, 'error');
+        }
+    }
+
+    async function publishNewsOnly() {
+        if (!confirm('确认只发布新闻数据？')) return;
+        await Store.loadAll();
+        const log = document.getElementById('publishLog');
+        log.innerHTML = '<div class="card-body" style="background:#f0f5fb">⏳ 发布中...</div>';
+        try {
+            await GitHub.publishNews();
+            log.innerHTML = '<div class="card mt-2" style="background:#e8f5ed;border-color:#2d8c4d"><div class="card-body">✓ 新闻已发布！Netlify 正在部署。</div></div>';
+            UI.toast('新闻发布成功', 'success');
+        } catch (e) {
+            log.innerHTML = `<div class="card mt-2" style="background:#fff1f0;border-color:#d63d3d"><div class="card-body" style="color:#c0382b"><strong>✗ 失败</strong><br>${e.message}</div></div>`;
+            UI.toast('发布失败：' + e.message, 'error');
+        }
+    }
+
+    loadConfig();
+  </script>
+</body>
+</html>

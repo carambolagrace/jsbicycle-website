@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>底部信息 - 后台管理系统</title>
+  <link rel="stylesheet" href="../css/admin.css">
+  <style>
+    .footer-section {
+        background: #fafbfc; border: 1px solid #eef1f5; border-radius: 6px;
+        padding: 16px; margin-bottom: 14px;
+    }
+    .footer-section h3 { font-size: 14px; font-weight: 600; margin-bottom: 12px; color: #1e3a5f; }
+    .footer-section .sub-item { padding: 8px 0; }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="app-header">
+      <div class="brand">JBEA Admin <span>底部信息管理</span></div>
+      <div class="spacer"></div>
+      <a href="../dashboard.html">← 返回仪表盘</a>
+      <a href="../index.html" target="_blank">查看网站 ↗</a>
+      <button onclick="AUTH.logout()">退出登录</button>
+    </header>
+    <div class="app-main">
+      <aside class="app-side">
+        <div class="group-title">概览</div>
+        <a href="../dashboard.html">仪表盘</a>
+        <div class="group-title">内容维护</div>
+        <a href="news.html">新闻资讯</a>
+        <a href="events.html">展会活动</a>
+        <a href="magazines.html">行业杂志</a>
+        <a href="standards.html">政策标准</a>
+        <a href="branches.html">分支机构</a>
+        <a href="wuxi-office.html">无锡办公室</a>
+        <a href="downloads.html">下载资料</a>
+        <div class="group-title">页面配置</div>
+        <a href="navigation.html">顶部导航</a>
+        <a href="footer.html" class="active">底部信息</a>
+        <a href="homepage.html">首页内容</a>
+        <div class="group-title">数据管理</div>
+        <a href="#" onclick="event.preventDefault(); Store.exportKey('footer');">导出本模块</a>
+      </aside>
+      <main class="app-content">
+        <h1 class="page-title">底部信息管理</h1>
+        <p class="page-subtitle">修改网站底部的联系方式、备案号、底部导航链接等。修改后请"保存所有修改"并导出 JSON。</p>
+
+        <div class="card">
+          <div class="card-head"><h3>联系信息</h3></div>
+          <div class="card-body">
+            <div class="field">
+              <label>联系电话（每行一个）</label>
+              <textarea id="phones" rows="3" placeholder="0510-85055112"></textarea>
+              <div class="help">每行输入一个电话号码，前台会逐个显示。</div>
+            </div>
+            <div class="field">
+              <label>电子邮箱</label>
+              <input type="text" id="email" placeholder="jbea@jsbicycle.com">
+            </div>
+            <div class="field">
+              <label>办公地址</label>
+              <input type="text" id="address" placeholder="江苏省无锡市清扬路七号11层">
+            </div>
+          </div>
+        </div>
+
+        <div class="card mt-4">
+          <div class="card-head"><h3>版权信息</h3></div>
+          <div class="card-body">
+            <div class="field-row">
+              <div class="field"><label>主办方名称</label><input type="text" id="copyrightOwner"></div>
+              <div class="field"><label>ICP 备案号</label><input type="text" id="icp"></div>
+            </div>
+            <div class="field">
+              <label>协会口号</label>
+              <input type="text" id="slogan">
+            </div>
+          </div>
+        </div>
+
+        <div class="card mt-4">
+          <div class="card-head"><h3>底部导航 - 快速入口</h3><button class="btn btn-sm" onclick="addQuick()">+ 新增</button></div>
+          <div class="card-body">
+            <div id="quickList"></div>
+          </div>
+        </div>
+
+        <div class="card mt-4">
+          <div class="card-head"><h3>底部导航 - 会员服务</h3><button class="btn btn-sm" onclick="addMember()">+ 新增</button></div>
+          <div class="card-body">
+            <div id="memberList"></div>
+          </div>
+        </div>
+
+        <div class="btn-group mt-4">
+          <button class="btn btn-primary" onclick="save()">保存所有修改</button>
+          <button class="btn" onclick="reset()">恢复默认</button>
+          <button class="btn" onclick="Store.exportKey('footer')">导出本模块 JSON</button>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="../js/auth.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/store.js"></script>
+  <script>
+    AUTH.guard();
+    let data = null;
+
+    async function init() {
+        await Store.loadAll();
+        data = Store.get('footer') || {};
+        render();
+    }
+
+    function render() {
+        document.getElementById('phones').value = (data.contact && data.contact.phone || []).join('\n');
+        document.getElementById('email').value = (data.contact && data.contact.email) || '';
+        document.getElementById('address').value = (data.contact && data.contact.address) || '';
+        document.getElementById('copyrightOwner').value = (data.copyright && data.copyright.owner) || '';
+        document.getElementById('icp').value = (data.copyright && data.copyright.icp) || '';
+        document.getElementById('slogan').value = data.slogan || '';
+        renderList('quickList', data.quickEntries || [], 'quick');
+        renderList('memberList', data.memberEntries || [], 'member');
+    }
+
+    function renderList(elemId, items, type) {
+        const el = document.getElementById(elemId);
+        el.innerHTML = items.map((it, i) => `
+            <div class="sub-item">
+                <input type="text" placeholder="链接文字" value="${UI.escapeAttr(it.label || '')}" oninput="updateList('${type}', ${i}, 'label', this.value)">
+                <input type="text" placeholder="链接 URL" value="${UI.escapeAttr(it.href || '')}" oninput="updateList('${type}', ${i}, 'href', this.value)">
+                <button class="remove" onclick="removeList('${type}', ${i})">×</button>
+            </div>
+        `).join('');
+    }
+
+    function updateList(type, i, key, value) {
+        const arr = type === 'quick' ? 'quickEntries' : 'memberEntries';
+        if (!data[arr]) data[arr] = [];
+        data[arr][i][key] = value;
+    }
+    function addQuick() { if (!data.quickEntries) data.quickEntries = []; data.quickEntries.push({ label: '新链接', href: './index.html' }); render(); }
+    function addMember() { if (!data.memberEntries) data.memberEntries = []; data.memberEntries.push({ label: '新链接', href: './index.html' }); render(); }
+    function removeList(type, i) {
+        const arr = type === 'quick' ? 'quickEntries' : 'memberEntries';
+        data[arr].splice(i, 1);
+        render();
+    }
+
+    function collect() {
+        data.contact = data.contact || {};
+        data.contact.phone = document.getElementById('phones').value.split('\n').map(s => s.trim()).filter(Boolean);
+        data.contact.email = document.getElementById('email').value.trim();
+        data.contact.address = document.getElementById('address').value.trim();
+        data.copyright = data.copyright || {};
+        data.copyright.owner = document.getElementById('copyrightOwner').value.trim();
+        data.copyright.icp = document.getElementById('icp').value.trim();
+        data.slogan = document.getElementById('slogan').value.trim();
+        return data;
+    }
+
+    function save() { collect(); Store.set('footer', data); UI.toast('已保存到本地', 'success'); }
+    async function reset() {
+        if (!confirm('恢复默认会丢弃所有修改。继续？')) return;
+        await Store.reset('footer');
+        data = Store.get('footer');
+        render();
+        UI.toast('已恢复默认数据', 'success');
+    }
+
+    init();
+  </script>
+</body>
+</html>

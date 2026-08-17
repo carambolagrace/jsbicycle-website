@@ -1,0 +1,26 @@
+[
+  {
+    "key": "jsbicycle",
+    "title": "《江苏省自行车》",
+    "publisher": "江苏省自行车电动车协会",
+    "period": "2026.07—08月",
+    "issue": "双月刊",
+    "cover": "assets/magazine-jsbicycle-cover.jpg",
+    "pdf": "assets/magazine-jsbicycle-2026-07.pdf",
+    "summary": "聚焦江苏自行车产业政策、企业动态与产品创新，记录行业成长足迹。",
+    "publishedAt": "2026.07.15",
+    "status": "current"
+  },
+  {
+    "key": "chinabike",
+    "title": "《中国电动自行车网》",
+    "publisher": "江苏省自行车电动车协会",
+    "period": "2026.07—08月",
+    "issue": "双月刊",
+    "cover": "assets/magazine-chinabike-cover.jpg",
+    "pdf": "assets/magazine-chinabike-2026-07.pdf",
+    "summary": "关注电动自行车产业新闻、产品评测、政策解读、市场动态，提供最新鲜的资讯观察。",
+    "publishedAt": "2026.07.15",
+    "status": "current"
+  }
+]

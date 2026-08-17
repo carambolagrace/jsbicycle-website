@@ -1,0 +1,23 @@
+{
+  "name": "jbea-website",
+  "version": "1.0.0",
+  "description": "江苏省自行车电动车协会官方网站 — Vite 多页面应用，支持一键构建与上线部署。",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview --port 4173 --host 0.0.0.0",
+    "start": "vite preview --port 4173 --host 0.0.0.0"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "vite": "^5.4.10"
+  },
+  "main": "detail.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

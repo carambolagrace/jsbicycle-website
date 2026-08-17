@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>分支机构 - 后台管理系统</title>
+  <link rel="stylesheet" href="../css/admin.css">
+  <style>
+    .tab-bar { display: flex; gap: 4px; border-bottom: 1px solid #eef1f5; margin-bottom: 14px; }
+    .tab-bar button {
+        padding: 8px 16px; border: none; background: transparent;
+        font-size: 13.5px; color: #6c7a8f; cursor: pointer;
+        border-bottom: 2px solid transparent; margin-bottom: -1px;
+    }
+    .tab-bar button.active { color: #1e3a5f; border-bottom-color: #1a73c5; font-weight: 600; }
+    .table-edit { background: #fafbfc; padding: 12px 16px; border-radius: 6px; margin-bottom: 10px; }
+    .table-edit th { font-size: 11px; color: #6c7a8f; padding: 4px 8px; text-align: left; }
+    .table-edit td { padding: 4px; }
+    .table-edit input { width: 100%; }
+    .header-row { font-weight: 600; background: #f0f5fb; }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="app-header">
+      <div class="brand">JBEA Admin <span>分支机构成员管理</span></div>
+      <div class="spacer"></div>
+      <a href="../dashboard.html">← 返回仪表盘</a>
+      <a href="../index.html" target="_blank">查看网站 ↗</a>
+      <button onclick="AUTH.logout()">退出登录</button>
+    </header>
+    <div class="app-main">
+      <aside class="app-side">
+        <div class="group-title">概览</div>
+        <a href="../dashboard.html">仪表盘</a>
+        <div class="group-title">内容维护</div>
+        <a href="news.html">新闻资讯</a>
+        <a href="events.html">展会活动</a>
+        <a href="magazines.html">行业杂志</a>
+        <a href="standards.html">政策标准</a>
+        <a href="branches.html" class="active">分支机构</a>
+        <a href="wuxi-office.html">无锡办公室</a>
+        <a href="downloads.html">下载资料</a>
+        <div class="group-title">页面配置</div>
+        <a href="navigation.html">顶部导航</a>
+        <a href="footer.html">底部信息</a>
+        <a href="homepage.html">首页内容</a>
+        <div class="group-title">数据管理</div>
+        <a href="#" onclick="event.preventDefault(); Store.exportKey('branches');">导出本模块</a>
+      </aside>
+      <main class="app-content">
+        <h1 class="page-title">分支机构成员管理</h1>
+        <p class="page-subtitle">充换电、共享电单车专委会成员名单表格。点击单元格直接编辑。</p>
+
+        <div class="tab-bar">
+          <button class="active" onclick="switchTab('charging-leadership', this)">充换电 - 主任/副主任名单</button>
+          <button onclick="switchTab('charging-members', this)">充换电 - 常务会员名单</button>
+          <button onclick="switchTab('sharing-members', this)">共享电单车 - 委员会名单</button>
+        </div>
+
+        <div id="tableArea"></div>
+
+        <div class="btn-group mt-4">
+          <button class="btn btn-primary" onclick="saveAll()">保存所有修改到本地</button>
+          <button class="btn" onclick="Store.exportKey('branches')">导出 JSON</button>
+          <button class="btn" onclick="resetData()">恢复默认</button>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="../js/auth.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/store.js"></script>
+  <script>
+    AUTH.guard();
+    let data = null;
+    let currentTab = 'charging-leadership';
+
+    async function init() {
+        await Store.loadAll();
+        data = Store.get('branches') || { charging: { leadership: { rows: [] }, members: { rows: [] } }, sharing: { members: { rows: [] } } };
+        render();
+    }
+
+    function switchTab(t, btn) {
+        currentTab = t;
+        document.querySelectorAll('.tab-bar button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        render();
+    }
+
+    function render() {
+        const area = document.getElementById('tableArea');
+        const [cat, type] = currentTab.split('-');
+        const table = data[cat] && data[cat][type];
+        if (!table) { area.innerHTML = '<div class="empty">数据为空</div>'; return; }
+        const headers = table.headers || [];
+        const rows = table.rows || [];
+        area.innerHTML = `
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-edit">
+                        <table style="width:100%; border-collapse: collapse;">
+                            <thead>
+                                <tr class="header-row">
+                                    ${headers.map((h, i) => `<th>${UI.escapeHtml(h)} <span class="text-muted">(${i+1})</span></th>`).join('')}
+                                    <th style="width:60px">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rowsBody"></tbody>
+                        </table>
+                        <div style="margin-top:12px;">
+                            <button class="btn btn-sm btn-primary" onclick="addRow()">+ 添加一行</button>
+                            <button class="btn btn-sm" onclick="addColumn()">+ 添加列</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        renderRows();
+    }
+
+    function getCurrentTable() {
+        const [cat, type] = currentTab.split('-');
+        return data[cat][type];
+    }
+
+    function renderRows() {
+        const table = getCurrentTable();
+        const headers = table.headers || [];
+        const rows = table.rows || [];
+        const tbody = document.getElementById('rowsBody');
+        tbody.innerHTML = rows.map((row, ri) => `
+            <tr>
+                ${headers.map((h, ci) => `<td><input type="text" value="${UI.escapeAttr(row[ci] || '')}" oninput="updateCell(${ri}, ${ci}, this.value)"></td>`).join('')}
+                <td><button class="remove" onclick="removeRow(${ri})">×</button></td>
+            </tr>
+        `).join('');
+    }
+
+    function updateCell(r, c, val) {
+        const table = getCurrentTable();
+        table.rows[r][c] = val;
+    }
+    function addRow() {
+        const table = getCurrentTable();
+        const cols = (table.headers || []).length;
+        table.rows.push(new Array(cols).fill(''));
+        renderRows();
+    }
+    function removeRow(r) {
+        if (!confirm('删除此行？')) return;
+        const table = getCurrentTable();
+        table.rows.splice(r, 1);
+        renderRows();
+    }
+    function addColumn() {
+        const table = getCurrentTable();
+        const name = prompt('新列名称？', '新列');
+        if (!name) return;
+        table.headers.push(name);
+        table.rows.forEach(r => r.push(''));
+        render();
+    }
+
+    function saveAll() { Store.set('branches', data); UI.toast('已保存到浏览器本地', 'success'); }
+    async function resetData() {
+        if (!confirm('恢复默认会丢弃所有修改。继续？')) return;
+        await Store.reset('branches');
+        data = Store.get('branches');
+        render();
+        UI.toast('已恢复默认数据', 'success');
+    }
+
+    init();
+  </script>
+</body>
+</html>

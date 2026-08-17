@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>行业杂志 - 后台管理系统</title>
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="app-header">
+      <div class="brand">JBEA Admin <span>行业杂志管理</span></div>
+      <div class="spacer"></div>
+      <a href="../dashboard.html">← 返回仪表盘</a>
+      <a href="../index.html" target="_blank">查看网站 ↗</a>
+      <button onclick="AUTH.logout()">退出登录</button>
+    </header>
+    <div class="app-main">
+      <aside class="app-side">
+        <div class="group-title">概览</div>
+        <a href="../dashboard.html">仪表盘</a>
+        <div class="group-title">内容维护</div>
+        <a href="news.html">新闻资讯</a>
+        <a href="events.html">展会活动</a>
+        <a href="magazines.html" class="active">行业杂志</a>
+        <a href="standards.html">政策标准</a>
+        <a href="branches.html">分支机构</a>
+        <a href="wuxi-office.html">无锡办公室</a>
+        <a href="downloads.html">下载资料</a>
+        <div class="group-title">页面配置</div>
+        <a href="navigation.html">顶部导航</a>
+        <a href="footer.html">底部信息</a>
+        <a href="homepage.html">首页内容</a>
+        <div class="group-title">数据管理</div>
+        <a href="#" onclick="event.preventDefault(); Store.exportKey('magazines');">导出本模块</a>
+      </aside>
+      <main class="app-content">
+        <h1 class="page-title">行业杂志管理</h1>
+        <p class="page-subtitle">维护《江苏省自行车》与《中国电动自行车网》两本电子双月刊的基本信息。</p>
+
+        <div id="list"></div>
+
+        <div class="card mt-4">
+          <div class="card-head"><h3 id="formTitle">添加期刊</h3></div>
+          <div class="card-body">
+            <form id="magForm">
+              <input type="hidden" id="editIdx">
+              <div class="field-row">
+                <div class="field"><label>URL KEY *</label><input type="text" id="key" required placeholder="jsbicycle"></div>
+                <div class="field"><label>期刊名称 *</label><input type="text" id="title" required></div>
+              </div>
+              <div class="field-row">
+                <div class="field"><label>主办单位</label><input type="text" id="publisher"></div>
+                <div class="field"><label>期号</label><input type="text" id="period" placeholder="2026.07—08月"></div>
+              </div>
+              <div class="field-row">
+                <div class="field"><label>发行周期</label><input type="text" id="issue" placeholder="双月刊"></div>
+                <div class="field"><label>发布日期</label><input type="text" id="publishedAt"></div>
+              </div>
+              <div class="field"><label>封面图 URL</label><input type="text" id="cover"></div>
+              <div class="field"><label>PDF URL</label><input type="text" id="pdf"></div>
+              <div class="field"><label>简介</label><textarea id="summary" rows="3"></textarea></div>
+              <div class="field"><label>状态</label>
+                <select id="status">
+                  <option value="current">最新期刊</option>
+                  <option value="archive">往期归档</option>
+                </select>
+              </div>
+              <div class="btn-group">
+                <button type="submit" class="btn btn-primary">保存到列表</button>
+                <button type="button" class="btn" onclick="resetForm()">清空表单</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <div class="btn-group mt-4">
+          <button class="btn btn-primary" onclick="saveAll()">保存所有修改到本地</button>
+          <button class="btn" onclick="Store.exportKey('magazines')">导出 JSON</button>
+          <button class="btn" onclick="resetData()">恢复默认</button>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="../js/auth.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/store.js"></script>
+  <script>
+    AUTH.guard();
+    let data = [];
+
+    async function init() {
+        await Store.loadAll();
+        data = Store.get('magazines') || [];
+        render();
+    }
+
+    function render() {
+        const list = document.getElementById('list');
+        if (!data.length) { list.innerHTML = '<div class="empty">暂无期刊</div>'; return; }
+        list.innerHTML = data.map((m, i) => `
+            <div class="list-item">
+                <div class="list-item-main">
+                    <div class="list-item-title">${UI.escapeHtml(m.title || '(无标题)')}</div>
+                    <div class="list-item-meta">
+                        <span class="tag">${UI.escapeHtml(m.period || '')}</span>
+                        <span class="tag tag-blue">${UI.escapeHtml(m.status === 'current' ? '最新' : '往期')}</span>
+                    </div>
+                </div>
+                <button class="btn btn-sm" onclick="editItem(${i})">编辑</button>
+                <button class="btn btn-sm btn-danger" onclick="deleteItem(${i})">删除</button>
+            </div>
+        `).join('');
+    }
+
+    function collect() {
+        const g = id => document.getElementById(id).value.trim();
+        return {
+            key: g('key'), title: g('title'),
+            publisher: g('publisher'), period: g('period'),
+            issue: g('issue'), publishedAt: g('publishedAt'),
+            cover: g('cover'), pdf: g('pdf'),
+            summary: g('summary'), status: g('status')
+        };
+    }
+    function fill(item) {
+        document.getElementById('editIdx').value = data.indexOf(item);
+        ['key','title','publisher','period','issue','publishedAt','cover','pdf','summary','status'].forEach(k => {
+            const el = document.getElementById(k);
+            el.value = item[k] || '';
+        });
+        document.getElementById('formTitle').textContent = '编辑期刊：' + (item.title || '');
+    }
+    function resetForm() {
+        document.getElementById('magForm').reset();
+        document.getElementById('editIdx').value = '';
+        document.getElementById('formTitle').textContent = '添加期刊';
+    }
+    function editItem(i) { fill(data[i]); window.scrollTo({ top: document.getElementById('magForm').offsetTop - 80, behavior: 'smooth' }); }
+    function deleteItem(i) {
+        if (!confirm('删除"' + data[i].title + '"？')) return;
+        data.splice(i, 1);
+        render(); resetForm();
+    }
+    document.getElementById('magForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const item = collect();
+        if (!item.key || !item.title) { UI.toast('请填写 KEY 和名称', 'error'); return; }
+        const idx = document.getElementById('editIdx').value;
+        if (idx === '') data.push(item);
+        else data[+idx] = item;
+        render(); resetForm();
+        UI.toast('已暂存到列表', 'success');
+    });
+    function saveAll() { Store.set('magazines', data); UI.toast('已保存到浏览器本地', 'success'); }
+    async function resetData() {
+        if (!confirm('恢复默认会丢弃所有修改。继续？')) return;
+        await Store.reset('magazines');
+        data = Store.get('magazines') || [];
+        render(); resetForm();
+        UI.toast('已恢复默认数据', 'success');
+    }
+    init();
+  </script>
+</body>
+</html>

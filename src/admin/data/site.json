@@ -1,0 +1,169 @@
+{
+  "name": "江苏省自行车电动车协会",
+  "shortName": "JBEA",
+  "enName": "JIANGSU BICYCLE & ELECTRIC VEHICLE ASSOCIATION",
+  "slogan": "连接产业 · 服务会员 · 共创未来",
+  "description": "江苏省自行车电动车协会官方网站——连接产业、服务会员、推动绿色出行。",
+  "foundedYear": 1985,
+  "contact": {
+    "phone": [
+      "0510-85055112",
+      "0510-85051427"
+    ],
+    "email": "jbea@jsbicycle.com",
+    "address": "江苏省无锡市清扬路七号11层"
+  },
+  "copyright": {
+    "owner": "江苏省自行车电动车协会",
+    "icp": "苏ICP备2022003366号"
+  },
+  "assets": {
+    "logo": "/logo.jpg",
+    "qrcode": "/qrcode.jpg",
+    "printLogo": "/print-logo.jpg",
+    "venueHeader": "/venue-header.jpg"
+  },
+  "navigation": [
+    {
+      "label": "首页",
+      "href": "./index.html",
+      "type": "link"
+    },
+    {
+      "label": "协会信息",
+      "href": "./page.html?page=about",
+      "type": "page",
+      "children": [
+        {
+          "label": "协会要闻",
+          "href": "./page.html?page=news"
+        },
+        {
+          "label": "理事会",
+          "href": "./page.html?page=about#council"
+        },
+        {
+          "label": "秘书处",
+          "href": "./page.html?page=about#secretariat"
+        },
+        {
+          "label": "大事记",
+          "href": "./page.html?page=about#chronicle"
+        }
+      ]
+    },
+    {
+      "label": "行业服务",
+      "href": "./index.html#industry-services",
+      "type": "hash",
+      "children": [
+        {
+          "label": "行业标准",
+          "href": "./page.html?page=standards"
+        },
+        {
+          "label": "展会资讯",
+          "href": "./page.html?page=events"
+        },
+        {
+          "label": "CCC 检测认证",
+          "href": "./index.html#testing"
+        }
+      ]
+    },
+    {
+      "label": "会员服务",
+      "href": "./page.html?page=membership",
+      "type": "page",
+      "children": [
+        {
+          "label": "入会申请",
+          "href": "./page.html?page=membership#join"
+        },
+        {
+          "label": "入会流程",
+          "href": "./page.html?page=membership#process"
+        },
+        {
+          "label": "协会章程",
+          "href": "./page.html?page=membership#charter"
+        },
+        {
+          "label": "会员单位",
+          "href": "./page.html?page=membership#members"
+        }
+      ]
+    },
+    {
+      "label": "资讯动态",
+      "href": "./index.html#news",
+      "type": "hash",
+      "children": [
+        {
+          "label": "行业动态",
+          "href": "./page.html?page=news"
+        },
+        {
+          "label": "政策法规",
+          "href": "./page.html?page=standards"
+        },
+        {
+          "label": "通知公告",
+          "href": "./page.html?page=services"
+        }
+      ]
+    }
+  ],
+  "topLinks": [
+    {
+      "label": "协会简介",
+      "href": "./page.html?page=about"
+    },
+    {
+      "label": "联系我们",
+      "href": "./page.html?page=about#contact-info"
+    },
+    {
+      "label": "会员入口",
+      "href": "./page.html?page=membership"
+    }
+  ],
+  "footer": {
+    "quickEntries": [
+      {
+        "label": "关于协会",
+        "href": "./page.html?page=about"
+      },
+      {
+        "label": "新闻动态",
+        "href": "./page.html?page=news"
+      },
+      {
+        "label": "政策标准",
+        "href": "./page.html?page=standards"
+      },
+      {
+        "label": "展会活动",
+        "href": "./page.html?page=events"
+      }
+    ],
+    "memberEntries": [
+      {
+        "label": "入会申请",
+        "href": "./page.html?page=membership"
+      },
+      {
+        "label": "会员权益",
+        "href": "./page.html?page=membership"
+      },
+      {
+        "label": "资料下载",
+        "href": "./page.html?page=services"
+      },
+      {
+        "label": "联系协会",
+        "href": "./page.html?page=about#contact-info"
+      }
+    ]
+  }
+}

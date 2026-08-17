@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>展会活动 - 后台管理系统</title>
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="app-header">
+      <div class="brand">JBEA Admin <span>展会活动管理</span></div>
+      <div class="spacer"></div>
+      <a href="../dashboard.html">← 返回仪表盘</a>
+      <a href="../index.html" target="_blank">查看网站 ↗</a>
+      <button onclick="AUTH.logout()">退出登录</button>
+    </header>
+    <div class="app-main">
+      <aside class="app-side">
+        <div class="group-title">概览</div>
+        <a href="../dashboard.html">仪表盘</a>
+        <div class="group-title">内容维护</div>
+        <a href="news.html">新闻资讯</a>
+        <a href="events.html" class="active">展会活动</a>
+        <a href="magazines.html">行业杂志</a>
+        <a href="standards.html">政策标准</a>
+        <a href="branches.html">分支机构</a>
+        <a href="wuxi-office.html">无锡办公室</a>
+        <a href="downloads.html">下载资料</a>
+        <div class="group-title">页面配置</div>
+        <a href="navigation.html">顶部导航</a>
+        <a href="footer.html">底部信息</a>
+        <a href="homepage.html">首页内容</a>
+        <div class="group-title">数据管理</div>
+        <a href="#" onclick="event.preventDefault(); Store.exportKey('events');">导出本模块</a>
+      </aside>
+      <main class="app-content">
+        <h1 class="page-title">展会活动管理</h1>
+        <p class="page-subtitle">维护 CEB 南京展、CEB 无锡展等品牌展会信息。修改后保存并导出。</p>
+
+        <div id="list"></div>
+
+        <div class="card mt-4">
+          <div class="card-head">
+            <h3 id="formTitle">添加展会</h3>
+          </div>
+          <div class="card-body">
+            <form id="eventForm">
+              <input type="hidden" id="editIdx">
+              <div class="field-row-3">
+                <div class="field"><label>URL ID *</label><input type="text" id="id" required placeholder="nanjing"></div>
+                <div class="field"><label>系列 (CEB XXX)</label><input type="text" id="series" placeholder="CEB NANJING"></div>
+                <div class="field"><label>届数</label><input type="text" id="edition" placeholder="43届"></div>
+              </div>
+              <div class="field"><label>状态</label>
+                <select id="status">
+                  <option value="报名中">报名中</option>
+                  <option value="已结束">已结束</option>
+                  <option value="即将开始">即将开始</option>
+                </select>
+              </div>
+              <div class="field"><label>标题 *</label><input type="text" id="title" required></div>
+              <div class="field-row-3">
+                <div class="field"><label>日期</label><input type="text" id="date" placeholder="2026.10.22—24"></div>
+                <div class="field"><label>地点</label><input type="text" id="location"></div>
+                <div class="field"><label>展馆/规模</label><input type="text" id="halls" placeholder="5 大展馆"></div>
+              </div>
+              <div class="field-row-3">
+                <div class="field"><label>展出面积</label><input type="text" id="area" placeholder="60,000+㎡"></div>
+                <div class="field"><label>参展企业</label><input type="text" id="exhibitors" placeholder="793+"></div>
+                <div class="field"><label>参观人次</label><input type="text" id="visitors" placeholder="37,562"></div>
+              </div>
+              <div class="field"><label>展位</label><input type="text" id="booths" placeholder="800+"></div>
+              <div class="field"><label>简介 / 描述</label><textarea id="description" rows="4"></textarea></div>
+              <div class="btn-group">
+                <button type="submit" class="btn btn-primary">保存</button>
+                <button type="button" class="btn" onclick="resetForm()">清空表单</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <div class="btn-group mt-4">
+          <button class="btn btn-primary" onclick="saveAll()">保存所有修改到本地</button>
+          <button class="btn" onclick="Store.exportKey('events')">导出本模块 JSON</button>
+          <button class="btn" onclick="resetData()">恢复默认</button>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="../js/auth.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/store.js"></script>
+  <script>
+    AUTH.guard();
+    let data = [];
+
+    async function init() {
+        await Store.loadAll();
+        data = Store.get('events') || [];
+        render();
+    }
+
+    function render() {
+        const list = document.getElementById('list');
+        if (!data.length) {
+            list.innerHTML = '<div class="empty">暂无展会，点击下方表单添加</div>';
+            return;
+        }
+        list.innerHTML = data.map((ev, i) => `
+            <div class="list-item">
+                <div class="list-item-main">
+                    <div class="list-item-title">${UI.escapeHtml(ev.title || '(无标题)')}</div>
+                    <div class="list-item-meta">
+                        <span class="tag">${UI.escapeHtml(ev.series || '')} ${UI.escapeHtml(ev.edition || '')}</span>
+                        <span class="tag tag-${ev.status === '报名中' ? 'green' : 'orange'}">${UI.escapeHtml(ev.status || '')}</span>
+                        <span class="text-muted">${UI.escapeHtml(ev.date || '')} · ${UI.escapeHtml(ev.location || '')}</span>
+                    </div>
+                </div>
+                <button class="btn btn-sm" onclick="editItem(${i})">编辑</button>
+                <button class="btn btn-sm btn-danger" onclick="deleteItem(${i})">删除</button>
+            </div>
+        `).join('');
+    }
+
+    function collect() {
+        const get = id => document.getElementById(id).value.trim();
+        return {
+            id: get('id'),
+            series: get('series'),
+            edition: get('edition'),
+            status: get('status'),
+            title: get('title'),
+            date: get('date'),
+            location: get('location'),
+            halls: get('halls'),
+            stats: {
+                area: get('area'),
+                exhibitors: get('exhibitors'),
+                visitors: get('visitors'),
+                booths: get('booths')
+            },
+            description: get('description')
+        };
+    }
+    function fill(item) {
+        document.getElementById('editIdx').value = data.indexOf(item);
+        document.getElementById('id').value = item.id || '';
+        document.getElementById('series').value = item.series || '';
+        document.getElementById('edition').value = item.edition || '';
+        document.getElementById('status').value = item.status || '报名中';
+        document.getElementById('title').value = item.title || '';
+        document.getElementById('date').value = item.date || '';
+        document.getElementById('location').value = item.location || '';
+        document.getElementById('halls').value = item.halls || '';
+        document.getElementById('area').value = (item.stats && item.stats.area) || '';
+        document.getElementById('exhibitors').value = (item.stats && item.stats.exhibitors) || '';
+        document.getElementById('visitors').value = (item.stats && item.stats.visitors) || '';
+        document.getElementById('booths').value = (item.stats && item.stats.booths) || '';
+        document.getElementById('description').value = item.description || '';
+        document.getElementById('formTitle').textContent = '编辑展会：' + (item.title || '');
+        window.scrollTo({ top: document.getElementById('eventForm').offsetTop - 80, behavior: 'smooth' });
+    }
+    function resetForm() {
+        document.getElementById('eventForm').reset();
+        document.getElementById('editIdx').value = '';
+        document.getElementById('formTitle').textContent = '添加展会';
+    }
+
+    function editItem(i) { fill(data[i]); }
+    function deleteItem(i) {
+        if (!confirm('删除展会"' + data[i].title + '"？')) return;
+        data.splice(i, 1);
+        render();
+        resetForm();
+    }
+
+    document.getElementById('eventForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const item = collect();
+        if (!item.id || !item.title) { UI.toast('请填写 ID 和标题', 'error'); return; }
+        const idx = document.getElementById('editIdx').value;
+        if (idx === '') data.push(item);
+        else data[+idx] = item;
+        render();
+        resetForm();
+        UI.toast('已保存到列表（点击下方"保存所有修改到本地"才生效）', 'success');
+    });
+
+    function saveAll() {
+        Store.set('events', data);
+        UI.toast('已保存到浏览器本地（记得导出 JSON）', 'success');
+    }
+    async function resetData() {
+        if (!confirm('恢复默认会丢弃所有修改。继续？')) return;
+        await Store.reset('events');
+        data = Store.get('events') || [];
+        render();
+        resetForm();
+        UI.toast('已恢复默认数据', 'success');
+    }
+
+    init();
+  </script>
+</body>
+</html>

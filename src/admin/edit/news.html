@@ -1,0 +1,383 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>新闻资讯 - 后台管理系统</title>
+  <link rel="stylesheet" href="../css/admin.css">
+  <style>
+    .news-tabs { display: flex; gap: 4px; border-bottom: 1px solid #eef1f5; margin-bottom: 14px; }
+    .news-tab {
+        padding: 8px 18px; border: none; background: transparent;
+        font-size: 13.5px; color: #6c7a8f; cursor: pointer;
+        border-bottom: 2px solid transparent;
+        margin-bottom: -1px;
+    }
+    .news-tab.active { color: #1e3a5f; border-bottom-color: #1a73c5; font-weight: 600; }
+    .news-tab .num { font-size: 11px; background: #eef1f5; padding: 1px 6px; border-radius: 3px; margin-left: 6px; }
+
+    .editor-area {
+        display: grid; grid-template-columns: 1fr 1fr;
+        gap: 16px; min-height: 360px;
+    }
+    .editor-pane { display: flex; flex-direction: column; }
+    .editor-pane label { font-size: 12px; color: #5a6678; margin-bottom: 4px; font-weight: 500; }
+    .editor-pane textarea {
+        flex: 1; min-height: 280px;
+        padding: 10px; border: 1px solid #d6dde5; border-radius: 5px;
+        font-family: ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, monospace;
+        font-size: 12.5px; line-height: 1.7; color: #2c3a4d;
+        resize: vertical;
+    }
+    .editor-pane textarea:focus { outline: none; border-color: #1a73c5; }
+    .preview-pane {
+        flex: 1; min-height: 280px;
+        padding: 14px 18px; border: 1px solid #eef1f5; border-radius: 5px;
+        background: #fafbfc; overflow-y: auto;
+        font-size: 13.5px; line-height: 1.85;
+    }
+    .preview-pane h1, .preview-pane h2, .preview-pane h3 { color: #1f2a3a; margin: 14px 0 10px; }
+    .preview-pane p { margin: 8px 0; color: #404f63; }
+    .preview-pane img { max-width: 100%; height: auto; border-radius: 4px; margin: 8px 0; }
+
+    .empty-state {
+        padding: 30px; text-align: center; color: #9ba6b3;
+    }
+
+    .img-toolbar {
+        display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap;
+    }
+    .img-thumb {
+        max-width: 80px; max-height: 60px; border-radius: 4px;
+        border: 1px solid #eef1f5;
+    }
+
+    .quick-help {
+        background: #f0f5fb; padding: 10px 14px; border-radius: 5px;
+        font-size: 12px; color: #404f63; margin-bottom: 14px;
+        border-left: 3px solid #1a73c5;
+    }
+    .quick-help code { background: #fff; padding: 1px 5px; border-radius: 3px; font-size: 11.5px; }
+    @media (max-width: 900px) {
+        .editor-area { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="app-header">
+      <div class="brand">JBEA Admin <span>新闻资讯管理</span></div>
+      <div class="spacer"></div>
+      <a href="../dashboard.html">← 返回仪表盘</a>
+      <a href="../index.html" target="_blank">查看网站 ↗</a>
+      <button onclick="AUTH.logout()">退出登录</button>
+    </header>
+    <div class="app-main">
+      <aside class="app-side">
+        <div class="group-title">概览</div>
+        <a href="../dashboard.html">仪表盘</a>
+        <div class="group-title">内容维护</div>
+        <a href="news.html" class="active">新闻资讯</a>
+        <a href="events.html">展会活动</a>
+        <a href="magazines.html">行业杂志</a>
+        <a href="standards.html">政策标准</a>
+        <a href="branches.html">分支机构</a>
+        <a href="wuxi-office.html">无锡办公室</a>
+        <a href="downloads.html">下载资料</a>
+        <div class="group-title">页面配置</div>
+        <a href="navigation.html">顶部导航</a>
+        <a href="footer.html">底部信息</a>
+        <a href="homepage.html">首页内容</a>
+        <div class="group-title">数据管理</div>
+        <a href="#" onclick="event.preventDefault(); exportThis();">导出本模块</a>
+      </aside>
+      <main class="app-content">
+        <h1 class="page-title">新闻资讯管理</h1>
+        <p class="page-subtitle">从公众号复制的文章，按分类整理到这里。正文支持 HTML，可上传图片（自动转 base64 嵌入）。</p>
+
+        <div class="card">
+          <div class="card-head">
+            <h3>添加 / 编辑新闻</h3>
+            <button class="btn btn-sm" onclick="resetForm()">+ 新增新闻</button>
+          </div>
+          <div class="card-body">
+            <form id="newsForm">
+              <input type="hidden" id="editId">
+              <input type="hidden" id="editCat">
+              <div class="field-row">
+                <div class="field">
+                  <label>标题 *</label>
+                  <input type="text" id="title" required placeholder="新闻标题">
+                </div>
+                <div class="field">
+                  <label>分类 *</label>
+                  <select id="category" required>
+                    <option value="association">协会动态</option>
+                    <option value="industry">行业资讯</option>
+                    <option value="policy">政策动态</option>
+                  </select>
+                </div>
+              </div>
+              <div class="field-row-3">
+                <div class="field">
+                  <label>显示日期 MM.DD</label>
+                  <input type="text" id="date" placeholder="07.22">
+                </div>
+                <div class="field">
+                  <label>ISO 日期 YYYY.MM.DD</label>
+                  <input type="text" id="iso" placeholder="2026.07.22">
+                </div>
+                <div class="field">
+                  <label>类型标签</label>
+                  <input type="text" id="type" placeholder="如：协会动态 / 公众号文章 / 政策解读">
+                </div>
+              </div>
+              <div class="field">
+                <label>URL ID（用于详情页链接，留空自动生成）</label>
+                <input type="text" id="idField" placeholder="如：pa-running；留空将根据标题自动生成">
+              </div>
+
+              <div class="quick-help">
+                <strong>正文编辑提示：</strong>
+                <br>• 支持 HTML 标签，如 <code>&lt;p&gt;</code>、<code>&lt;h2&gt;</code>、<code>&lt;img&gt;</code>、<code>&lt;strong&gt;</code>
+                <br>• 上传图片：点下方"上传图片"按钮，图片自动转 base64 嵌入正文
+                <br>• 段落之间用空行分隔
+                <br>• 右侧实时预览效果
+              </div>
+
+              <div class="field">
+                <label>详情正文 (HTML)</label>
+                <div class="editor-area">
+                  <div class="editor-pane">
+                    <textarea id="body" placeholder="<p>正文第一段...</p>&#10;<p>正文第二段...</p>"></textarea>
+                    <div class="img-toolbar">
+                      <label class="btn btn-sm">
+                        📷 上传图片
+                        <input type="file" accept="image/*" id="imgUpload" style="display:none" onchange="insertImage(event)">
+                      </label>
+                      <button type="button" class="btn btn-sm" onclick="insertHTML('<p></p>')">插入段落</button>
+                      <button type="button" class="btn btn-sm" onclick="insertHTML('<h2></h2>')">插入标题</button>
+                      <button type="button" class="btn btn-sm" onclick="insertHTML('<strong></strong>')">加粗</button>
+                    </div>
+                  </div>
+                  <div class="preview-pane" id="preview"></div>
+                </div>
+              </div>
+
+              <div class="btn-group">
+                <button type="submit" class="btn btn-primary">保存</button>
+                <button type="button" class="btn" onclick="resetForm()">取消</button>
+                <button type="button" class="btn btn-danger" id="delBtn" style="display:none" onclick="deleteItem()">删除</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <div class="card mt-4">
+          <div class="card-head">
+            <h3>已有新闻</h3>
+          </div>
+          <div class="card-body">
+            <div class="news-tabs" id="tabs"></div>
+            <div class="list" id="list"></div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="../js/auth.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/store.js"></script>
+  <script>
+    AUTH.guard();
+
+    const CAT_LABEL = { association: '协会动态', industry: '行业资讯', policy: '政策动态' };
+    let currentCat = 'association';
+
+    async function init() {
+        await Store.loadAll();
+        renderTabs();
+        renderList();
+    }
+
+    function renderTabs() {
+        const news = Store.get('news') || {};
+        const tabs = document.getElementById('tabs');
+        tabs.innerHTML = Object.keys(CAT_LABEL).map(cat => {
+            const n = (news[cat] || []).length;
+            return `<button class="news-tab ${cat===currentCat?'active':''}" onclick="switchCat('${cat}')">${CAT_LABEL[cat]}<span class="num">${n}</span></button>`;
+        }).join('');
+    }
+
+    function switchCat(cat) {
+        currentCat = cat;
+        renderTabs();
+        renderList();
+    }
+
+    function renderList() {
+        const news = Store.get('news') || {};
+        const items = news[currentCat] || [];
+        const list = document.getElementById('list');
+        if (!items.length) {
+            list.innerHTML = '<div class="empty-state">暂无新闻，点击上方"+ 新增新闻"添加</div>';
+            return;
+        }
+        list.innerHTML = items.map((it, i) => `
+            <div class="list-item">
+                <div class="list-item-main">
+                    <div class="list-item-title">${UI.escapeHtml(it.title || '(无标题)')}</div>
+                    <div class="list-item-meta">
+                        <span class="tag">${UI.escapeHtml(it.date || '')}</span>
+                        <span class="tag tag-blue">${UI.escapeHtml(it.iso || '')}</span>
+                        <span class="tag tag-orange">${UI.escapeHtml(it.type || it.category || '')}</span>
+                        <span class="text-muted">ID: ${UI.escapeHtml(it.id)}</span>
+                    </div>
+                </div>
+                <button class="btn btn-sm" onclick="editItem('${it.id}')">编辑</button>
+            </div>
+        `).join('');
+    }
+
+    function resetForm() {
+        document.getElementById('newsForm').reset();
+        document.getElementById('editId').value = '';
+        document.getElementById('editCat').value = '';
+        document.getElementById('category').value = currentCat;
+        document.getElementById('iso').value = UI.todayISO();
+        document.getElementById('date').value = UI.shortDate(UI.todayISO());
+        document.getElementById('delBtn').style.display = 'none';
+        updatePreview();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function editItem(id) {
+        const news = Store.get('news') || {};
+        let found = null, foundCat = null;
+        for (const cat of Object.keys(news)) {
+            const it = (news[cat] || []).find(x => x.id === id);
+            if (it) { found = it; foundCat = cat; break; }
+        }
+        if (!found) { UI.toast('找不到这条新闻', 'error'); return; }
+
+        document.getElementById('editId').value = id;
+        document.getElementById('editCat').value = foundCat;
+        document.getElementById('title').value = found.title || '';
+        document.getElementById('category').value = foundCat;
+        document.getElementById('date').value = found.date || '';
+        document.getElementById('iso').value = found.iso || '';
+        document.getElementById('type').value = found.type || '';
+        document.getElementById('idField').value = id;
+        const detail = Store.get('newsDetail') || {};
+        document.getElementById('body').value = detail[id] || '';
+        document.getElementById('delBtn').style.display = '';
+        updatePreview();
+        switchCat(foundCat);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function updatePreview() {
+        const body = document.getElementById('body').value;
+        document.getElementById('preview').innerHTML = body || '<div class="empty-state">正文为空</div>';
+    }
+
+    document.getElementById('body').addEventListener('input', updatePreview);
+
+    async function insertImage(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        try {
+            const dataUrl = await UI.fileToDataURL(file);
+            const html = `<img src="${dataUrl}" alt="" />`;
+            insertHTML(html);
+            UI.toast('图片已插入正文', 'success');
+        } catch (err) {
+            UI.toast('图片读取失败: ' + err.message, 'error');
+        }
+        e.target.value = '';
+    }
+
+    function insertHTML(html) {
+        const ta = document.getElementById('body');
+        const start = ta.selectionStart, end = ta.selectionEnd;
+        ta.value = ta.value.slice(0, start) + html + ta.value.slice(end);
+        ta.focus();
+        ta.selectionStart = ta.selectionEnd = start + html.length;
+        updatePreview();
+    }
+
+    document.getElementById('newsForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const editId = document.getElementById('editId').value;
+        const oldCat = document.getElementById('editCat').value;
+        const title = document.getElementById('title').value.trim();
+        const category = document.getElementById('category').value;
+        const date = document.getElementById('date').value.trim();
+        const iso = document.getElementById('iso').value.trim();
+        const type = document.getElementById('type').value.trim();
+        const body = document.getElementById('body').value;
+        let id = document.getElementById('idField').value.trim();
+        if (!id) id = UI.slugify(title);
+        if (!title) { UI.toast('请填写标题', 'error'); return; }
+        if (!id) { UI.toast('无法生成 ID，请手动填写', 'error'); return; }
+
+        const news = Store.get('news') || { association: [], industry: [], policy: [] };
+
+        // 移动到新分类（如有改变）
+        if (editId) {
+            for (const cat of Object.keys(news)) {
+                news[cat] = (news[cat] || []).filter(x => x.id !== editId);
+            }
+        }
+
+        const item = { id, title, date, iso, category: CAT_LABEL[category], type: type || CAT_LABEL[category] };
+        if (!news[category]) news[category] = [];
+        // 避免重复 ID
+        if (news[category].some(x => x.id === id)) {
+            UI.toast('该分类下已存在相同 ID 的新闻', 'error');
+            return;
+        }
+        news[category].unshift(item);
+
+        Store.set('news', news);
+
+        // 保存详情正文
+        const details = Store.get('newsDetail') || {};
+        details[id] = body;
+        Store.set('newsDetail', details);
+
+        UI.toast(editId ? '已更新' : '已新增', 'success');
+        resetForm();
+        renderTabs();
+        renderList();
+    });
+
+    function deleteItem() {
+        const editId = document.getElementById('editId').value;
+        if (!editId) return;
+        if (!confirm(`确认删除「${document.getElementById('title').value}」？\n（该条新闻及其详情将一并移除）`)) return;
+        const news = Store.get('news') || {};
+        for (const cat of Object.keys(news)) {
+            news[cat] = (news[cat] || []).filter(x => x.id !== editId);
+        }
+        Store.set('news', news);
+        const details = Store.get('newsDetail') || {};
+        delete details[editId];
+        Store.set('newsDetail', details);
+        UI.toast('已删除', 'success');
+        resetForm();
+        renderTabs();
+        renderList();
+    }
+
+    function exportThis() {
+        Store.exportKey('news');
+        Store.exportKey('newsDetail');
+        UI.toast('已下载两个 JSON 文件', 'success');
+    }
+
+    init();
+  </script>
+</body>
+</html>
