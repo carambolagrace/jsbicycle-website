@@ -37,15 +37,19 @@ if (pageKey === 'news') {
     const allNews = [
       ...newsList.association.map((item) => ({ ...item, type: 'association' })),
       ...newsList.industry.map((item) => ({ ...item, type: 'industry' })),
-      ...newsList.policy.map((item) => ({ ...item, type: 'policy' }))
+      ...newsList.policy.map((item) => ({ ...item, type: 'policy' })),
+      ...newsList.notice.map((item) => ({ ...item, type: 'notice' }))
     ];
-    articleList.innerHTML = allNews.map((item) => `
-      <a data-type="${item.type}" href="./detail.html?type=news&id=${item.id}">
+    articleList.innerHTML = allNews.map((item) => {
+      const detailType = item.type === 'notice' ? 'notice' : 'news';
+      return `
+      <a data-type="${item.type}" href="./detail.html?type=${detailType}&id=${item.id}">
         <time><b>${item.date.split('.')[1]}</b><span>${item.iso.slice(0, 4) + '.' + item.date.split('.')[0]}</span></time>
-        <div><i>${item.type}</i><h3>${item.title}</h3><p>${item.category} · ${item.iso}</p></div>
+        <div><i>${item.type === 'notice' ? item.category : item.type}</i><h3>${item.title}</h3><p>${item.category} · ${item.iso}</p></div>
         <strong>↗</strong>
       </a>
-    `).join('');
+    `;
+    }).join('');
   }
 }
 
