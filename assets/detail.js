@@ -23,7 +23,7 @@ if (contextualBody) record.body = contextualBody;
 document.title = `${record.title}｜江苏省自行车电动车协会`;
 qs('#detail-type').textContent = record.label;
 qs('#detail-title').textContent = record.title;
-qs('#detail-meta').innerHTML = `<span>江苏省自行车电动车协会</span><span>${record.date}</span><span>阅读 1280</span>`;
+qs('#detail-meta').innerHTML = '';
 qs('#detail-content').innerHTML = record.body;
 
 const parentLink = qs('#detail-parent-link');
