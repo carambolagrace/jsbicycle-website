@@ -1,0 +1,23 @@
+{
+  "hero": {
+    "eyebrow": "江苏省行业服务平台",
+    "title": "以标准凝聚产业<br />向绿色出行的未来",
+    "emphasis": "向绿色出行",
+    "description": "立足江苏、服务行业，链接政府、企业与市场，为自行车和电动车产业的高质量发展提供专业支撑。",
+    "scroll": "向下浏览"
+  },
+  "focus": {
+    "tag": "重要声明",
+    "title": "坚决抵制电动自行车行业各类违法违规行为",
+    "body": "协会倡议全行业守法经营、诚信自律，共同维护公平有序的市场环境。",
+    "url": "./detail.html?type=news&id=statement",
+    "linkText": "阅读详情"
+  },
+  "quickLinks": [
+    { "title": "加入协会", "sub": "入会指南 · 在线申请", "href": "./page.html?page=membership" },
+    { "title": "政策标准", "sub": "法规 · 标准 · 解读", "href": "./page.html?page=standards" },
+    { "title": "活动报名", "sub": "展会 · 会议 · 论坛", "href": "./page.html?page=events" },
+    { "title": "资料下载", "sub": "表格 · 文件 · 会议资料", "href": "./page.html?page=services" },
+    { "title": "联系协会", "sub": "电话 · 邮箱 · 地址", "href": "./page.html?page=about#contact-info" }
+  ]
+}

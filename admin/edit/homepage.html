@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>首页内容 - 后台管理系统</title>
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="app-header">
+      <div class="brand">JBEA Admin <span>首页内容管理</span></div>
+      <div class="spacer"></div>
+      <a href="../dashboard.html">← 返回仪表盘</a>
+      <a href="../index.html" target="_blank">查看网站 ↗</a>
+      <button onclick="AUTH.logout()">退出登录</button>
+    </header>
+    <div class="app-main">
+      <aside class="app-side">
+        <div class="group-title">概览</div>
+        <a href="../dashboard.html">仪表盘</a>
+        <div class="group-title">内容维护</div>
+        <a href="news.html">新闻资讯</a>
+        <a href="events.html">展会活动</a>
+        <a href="magazines.html">行业杂志</a>
+        <a href="standards.html">政策标准</a>
+        <a href="branches.html">分支机构</a>
+        <a href="wuxi-office.html">无锡办公室</a>
+        <a href="downloads.html">下载资料</a>
+        <div class="group-title">页面配置</div>
+        <a href="navigation.html">顶部导航</a>
+        <a href="footer.html">底部信息</a>
+        <a href="homepage.html" class="active">首页内容</a>
+        <div class="group-title">数据管理</div>
+        <a href="#" onclick="event.preventDefault(); Store.exportKey('homepage');">导出本模块</a>
+      </aside>
+      <main class="app-content">
+        <h1 class="page-title">首页内容管理</h1>
+        <p class="page-subtitle">首页 Hero 焦点图、重点关注卡片、快捷链接等。改完保存并导出。</p>
+
+        <div class="card">
+          <div class="card-head"><h3>Hero 主标题与描述</h3></div>
+          <div class="card-body">
+            <div class="field"><label>主标题（支持 &lt;br&gt;）</label><input type="text" id="heroTitle" placeholder="以标准凝聚产业<br />向绿色出行的未来"></div>
+            <div class="field"><label>主标题强调部分</label><input type="text" id="heroEmphasis" placeholder="向绿色出行"></div>
+            <div class="field"><label>副描述</label><textarea id="heroDescription" rows="3"></textarea></div>
+            <div class="field-row">
+              <div class="field"><label>顶部小标签</label><input type="text" id="heroEyebrow" placeholder="江苏省行业服务平台"></div>
+              <div class="field"><label>提示文字</label><input type="text" id="heroScroll" placeholder="向下浏览"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card mt-4">
+          <div class="card-head"><h3>重点关注卡片（hero 右侧）</h3></div>
+          <div class="card-body">
+            <div class="field"><label>标签文字</label><input type="text" id="focusTag" placeholder="重要声明"></div>
+            <div class="field"><label>标题</label><input type="text" id="focusTitle"></div>
+            <div class="field"><label>正文</label><textarea id="focusBody" rows="2"></textarea></div>
+            <div class="field"><label>链接 URL</label><input type="text" id="focusUrl" placeholder="./detail.html?type=news&id=statement"></div>
+            <div class="field"><label>链接文字</label><input type="text" id="focusLinkText" placeholder="阅读详情"></div>
+          </div>
+        </div>
+
+        <div class="card mt-4">
+          <div class="card-head"><h3>快捷服务（首页底部 5 个图标入口）</h3></div>
+          <div class="card-body">
+            <div id="quickLinks"></div>
+            <button class="btn btn-sm mt-2" onclick="addQuick()">+ 新增快捷链接</button>
+          </div>
+        </div>
+
+        <div class="btn-group mt-4">
+          <button class="btn btn-primary" onclick="save()">保存所有修改</button>
+          <button class="btn" onclick="reset()">恢复默认</button>
+          <button class="btn" onclick="Store.exportKey('homepage')">导出 JSON</button>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="../js/auth.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/store.js"></script>
+  <script>
+    AUTH.guard();
+    let data = null;
+
+    async function init() {
+        await Store.loadAll();
+        data = Store.get('homepage') || defaultData();
+        render();
+    }
+
+    function defaultData() {
+        return {
+            hero: {
+                eyebrow: '江苏省行业服务平台',
+                title: '以标准凝聚产业<br />向绿色出行的未来',
+                emphasis: '向绿色出行',
+                description: '立足江苏、服务行业，链接政府、企业与市场，为自行车和电动车产业的高质量发展提供专业支撑。',
+                scroll: '向下浏览'
+            },
+            focus: {
+                tag: '重要声明',
+                title: '坚决抵制电动自行车行业各类违法违规行为',
+                body: '协会倡议全行业守法经营、诚信自律，共同维护公平有序的市场环境。',
+                url: './detail.html?type=news&id=statement',
+                linkText: '阅读详情'
+            },
+            quickLinks: [
+                { title: '加入协会', sub: '入会指南 · 在线申请', href: './page.html?page=membership' },
+                { title: '政策标准', sub: '法规 · 标准 · 解读', href: './page.html?page=standards' },
+                { title: '活动报名', sub: '展会 · 会议 · 论坛', href: './page.html?page=events' },
+                { title: '资料下载', sub: '表格 · 文件 · 会议资料', href: './page.html?page=services' },
+                { title: '联系协会', sub: '电话 · 邮箱 · 地址', href: './page.html?page=about#contact-info' }
+            ]
+        };
+    }
+
+    function render() {
+        document.getElementById('heroTitle').value = (data.hero && data.hero.title) || '';
+        document.getElementById('heroEmphasis').value = (data.hero && data.hero.emphasis) || '';
+        document.getElementById('heroDescription').value = (data.hero && data.hero.description) || '';
+        document.getElementById('heroEyebrow').value = (data.hero && data.hero.eyebrow) || '';
+        document.getElementById('heroScroll').value = (data.hero && data.hero.scroll) || '';
+        document.getElementById('focusTag').value = (data.focus && data.focus.tag) || '';
+        document.getElementById('focusTitle').value = (data.focus && data.focus.title) || '';
+        document.getElementById('focusBody').value = (data.focus && data.focus.body) || '';
+        document.getElementById('focusUrl').value = (data.focus && data.focus.url) || '';
+        document.getElementById('focusLinkText').value = (data.focus && data.focus.linkText) || '';
+        renderQuickLinks();
+    }
+
+    function renderQuickLinks() {
+        const el = document.getElementById('quickLinks');
+        el.innerHTML = (data.quickLinks || []).map((q, i) => `
+            <div class="sub-item" style="display:grid;grid-template-columns:1fr 2fr 2fr 60px;gap:8px;padding:6px 0;border-bottom:1px dashed #eef1f5;">
+                <input type="text" placeholder="标题" value="${UI.escapeAttr(q.title || '')}" oninput="updateQL(${i}, 'title', this.value)">
+                <input type="text" placeholder="副标题" value="${UI.escapeAttr(q.sub || '')}" oninput="updateQL(${i}, 'sub', this.value)">
+                <input type="text" placeholder="链接 URL" value="${UI.escapeAttr(q.href || '')}" oninput="updateQL(${i}, 'href', this.value)">
+                <button class="remove" onclick="removeQL(${i})">×</button>
+            </div>
+        `).join('');
+    }
+
+    function updateQL(i, k, v) { data.quickLinks[i][k] = v; }
+    function addQuick() {
+        if (data.quickLinks.length >= 6) { UI.toast('最多 6 个', 'error'); return; }
+        data.quickLinks.push({ title: '新链接', sub: '', href: './index.html' });
+        renderQuickLinks();
+    }
+    function removeQL(i) { data.quickLinks.splice(i, 1); renderQuickLinks(); }
+
+    function collect() {
+        data.hero = data.hero || {};
+        data.hero.title = document.getElementById('heroTitle').value.trim();
+        data.hero.emphasis = document.getElementById('heroEmphasis').value.trim();
+        data.hero.description = document.getElementById('heroDescription').value.trim();
+        data.hero.eyebrow = document.getElementById('heroEyebrow').value.trim();
+        data.hero.scroll = document.getElementById('heroScroll').value.trim();
+        data.focus = data.focus || {};
+        data.focus.tag = document.getElementById('focusTag').value.trim();
+        data.focus.title = document.getElementById('focusTitle').value.trim();
+        data.focus.body = document.getElementById('focusBody').value.trim();
+        data.focus.url = document.getElementById('focusUrl').value.trim();
+        data.focus.linkText = document.getElementById('focusLinkText').value.trim();
+    }
+
+    function save() { collect(); Store.set('homepage', data); UI.toast('已保存到本地', 'success'); }
+    async function reset() {
+        if (!confirm('恢复默认会丢弃所有修改。继续？')) return;
+        await Store.reset('homepage');
+        data = Store.get('homepage') || defaultData();
+        render();
+        UI.toast('已恢复默认数据', 'success');
+    }
+
+    init();
+  </script>
+</body>
+</html>

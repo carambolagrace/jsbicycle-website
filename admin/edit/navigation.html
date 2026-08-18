@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>顶部导航 - 后台管理系统</title>
+  <link rel="stylesheet" href="../css/admin.css">
+  <style>
+    .nav-item-edit {
+        background: #fafbfc; border: 1px solid #eef1f5; border-radius: 6px;
+        padding: 14px 16px; margin-bottom: 12px;
+    }
+    .nav-item-edit .item-head {
+        display: flex; align-items: center; gap: 8px; margin-bottom: 10px;
+    }
+    .nav-item-edit .item-head strong { flex: 1; font-size: 14px; }
+    .sub-list { padding-left: 16px; border-left: 2px solid #1a73c5; margin-top: 10px; }
+    .sub-item {
+        display: flex; gap: 8px; align-items: center; padding: 6px 0;
+        border-bottom: 1px dashed #eef1f5;
+    }
+    .sub-item:last-child { border-bottom: none; }
+    .sub-item input { flex: 1; }
+    .sub-item .remove { color: #d63d3d; background: none; border: none; cursor: pointer; font-size: 16px; }
+    .preview-bar {
+        background: #1e3a5f; color: #fff; padding: 12px 20px;
+        border-radius: 6px; margin-bottom: 18px;
+        display: flex; gap: 16px; align-items: center;
+    }
+    .preview-bar a { color: #fff; padding: 4px 10px; border-radius: 4px; background: rgba(255,255,255,.1); font-size: 13px; }
+    .preview-bar a.has-sub::after { content: '▾'; margin-left: 4px; }
+    .preview-bar a:hover { background: rgba(255,255,255,.2); }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="app-header">
+      <div class="brand">JBEA Admin <span>顶部导航管理</span></div>
+      <div class="spacer"></div>
+      <a href="../dashboard.html">← 返回仪表盘</a>
+      <a href="../index.html" target="_blank">查看网站 ↗</a>
+      <button onclick="AUTH.logout()">退出登录</button>
+    </header>
+    <div class="app-main">
+      <aside class="app-side">
+        <div class="group-title">概览</div>
+        <a href="../dashboard.html">仪表盘</a>
+        <div class="group-title">内容维护</div>
+        <a href="news.html">新闻资讯</a>
+        <a href="events.html">展会活动</a>
+        <a href="magazines.html">行业杂志</a>
+        <a href="standards.html">政策标准</a>
+        <a href="branches.html">分支机构</a>
+        <a href="wuxi-office.html">无锡办公室</a>
+        <a href="downloads.html">下载资料</a>
+        <div class="group-title">页面配置</div>
+        <a href="navigation.html" class="active">顶部导航</a>
+        <a href="footer.html">底部信息</a>
+        <a href="homepage.html">首页内容</a>
+        <div class="group-title">数据管理</div>
+        <a href="#" onclick="event.preventDefault(); Store.exportKey('navigation');">导出本模块</a>
+      </aside>
+      <main class="app-content">
+        <h1 class="page-title">顶部导航管理</h1>
+        <p class="page-subtitle">修改顶部导航菜单和二级子菜单。改完别忘记点"保存所有修改"，然后导出全部数据。</p>
+
+        <div class="card">
+          <div class="card-head">
+            <h3>预览效果</h3>
+            <button class="btn btn-sm" onclick="refreshPreview()">刷新预览</button>
+          </div>
+          <div class="card-body">
+            <div class="preview-bar" id="previewBar"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <h3>导航菜单（最多 6 项）</h3>
+            <button class="btn btn-sm btn-primary" onclick="addNavItem()">+ 新增菜单项</button>
+          </div>
+          <div class="card-body">
+            <div id="navList"></div>
+          </div>
+        </div>
+
+        <div class="card mt-4">
+          <div class="card-head">
+            <h3>顶部右侧快捷链接</h3>
+          </div>
+          <div class="card-body">
+            <div id="topLinksList"></div>
+            <button class="btn btn-sm mt-2" onclick="addTopLink()">+ 新增快捷链接</button>
+          </div>
+        </div>
+
+        <div class="btn-group mt-4">
+          <button class="btn btn-primary" onclick="save()">保存所有修改</button>
+          <button class="btn" onclick="reset()">恢复默认</button>
+          <button class="btn" onclick="Store.exportKey('navigation')">导出本模块 JSON</button>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="../js/auth.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/store.js"></script>
+  <script>
+    AUTH.guard();
+
+    let data = null;
+
+    async function init() {
+        await Store.loadAll();
+        data = Store.get('navigation') || { navigation: [], topLinks: [] };
+        render();
+        refreshPreview();
+    }
+
+    function render() {
+        const navList = document.getElementById('navList');
+        navList.innerHTML = data.navigation.map((item, i) => `
+            <div class="nav-item-edit">
+                <div class="item-head">
+                    <strong>菜单项 #${i+1}</strong>
+                    <button class="btn btn-sm" onclick="moveItem(${i}, -1)">↑</button>
+                    <button class="btn btn-sm" onclick="moveItem(${i}, 1)">↓</button>
+                    <button class="btn btn-sm btn-danger" onclick="removeItem(${i})">删除</button>
+                </div>
+                <div class="field-row">
+                    <div class="field"><label>显示文字</label><input type="text" data-i="${i}" data-k="label" value="${UI.escapeAttr(item.label || '')}" oninput="updateItem(event)"></div>
+                    <div class="field"><label>链接 URL</label><input type="text" data-i="${i}" data-k="href" value="${UI.escapeAttr(item.href || '')}" oninput="updateItem(event)"></div>
+                </div>
+                <div class="field-row">
+                    <div class="field"><label>类型</label>
+                        <select data-i="${i}" data-k="type" onchange="updateItem(event)">
+                            <option value="link" ${item.type === 'link' ? 'selected' : ''}>link — 普通链接</option>
+                            <option value="page" ${item.type === 'page' ? 'selected' : ''}>page — 站内页面</option>
+                            <option value="hash" ${item.type === 'hash' ? 'selected' : ''}>hash — 锚点链接</option>
+                        </select>
+                    </div>
+                    <div class="field"><label>子菜单管理</label>
+                        <button class="btn btn-sm" onclick="addSub(${i})">+ 添加子菜单</button>
+                    </div>
+                </div>
+                ${renderSubs(item.children, i)}
+            </div>
+        `).join('');
+
+        const topLinksList = document.getElementById('topLinksList');
+        topLinksList.innerHTML = data.topLinks.map((tl, i) => `
+            <div class="sub-item">
+                <input type="text" placeholder="链接文字" data-i="${i}" data-k="label" value="${UI.escapeAttr(tl.label || '')}" oninput="updateTopLink(event)">
+                <input type="text" placeholder="链接 URL" data-i="${i}" data-k="href" value="${UI.escapeAttr(tl.href || '')}" oninput="updateTopLink(event)">
+                <button class="remove" onclick="removeTopLink(${i})">×</button>
+            </div>
+        `).join('');
+    }
+
+    function renderSubs(subs, parentIdx) {
+        if (!subs || !subs.length) return '';
+        return `<div class="sub-list">
+            ${subs.map((s, j) => `
+                <div class="sub-item">
+                    <input type="text" placeholder="子菜单文字" value="${UI.escapeAttr(s.label || '')}" oninput="updateSub(${parentIdx}, ${j}, 'label', this.value)">
+                    <input type="text" placeholder="子菜单链接" value="${UI.escapeAttr(s.href || '')}" oninput="updateSub(${parentIdx}, ${j}, 'href', this.value)">
+                    <button class="remove" onclick="removeSub(${parentIdx}, ${j})">×</button>
+                </div>
+            `).join('')}
+        </div>`;
+    }
+
+    function updateItem(e) {
+        const i = +e.target.dataset.i;
+        const k = e.target.dataset.k;
+        data.navigation[i][k] = e.target.value;
+    }
+    function updateSub(parentIdx, j, key, value) {
+        data.navigation[parentIdx].children[j][key] = value;
+    }
+    function addNavItem() {
+        if (data.navigation.length >= 6) { UI.toast('最多 6 项菜单', 'error'); return; }
+        data.navigation.push({ label: '新菜单', href: './index.html', type: 'link', children: [] });
+        render(); refreshPreview();
+    }
+    function removeItem(i) {
+        if (!confirm('删除此菜单项？')) return;
+        data.navigation.splice(i, 1);
+        render(); refreshPreview();
+    }
+    function moveItem(i, dir) {
+        const j = i + dir;
+        if (j < 0 || j >= data.navigation.length) return;
+        [data.navigation[i], data.navigation[j]] = [data.navigation[j], data.navigation[i]];
+        render(); refreshPreview();
+    }
+    function addSub(i) {
+        if (!data.navigation[i].children) data.navigation[i].children = [];
+        data.navigation[i].children.push({ label: '子菜单', href: './index.html' });
+        render();
+    }
+    function removeSub(p, j) {
+        data.navigation[p].children.splice(j, 1);
+        render();
+    }
+
+    function updateTopLink(e) {
+        const i = +e.target.dataset.i;
+        const k = e.target.dataset.k;
+        data.topLinks[i][k] = e.target.value;
+    }
+    function addTopLink() {
+        if (data.topLinks.length >= 6) { UI.toast('最多 6 个快捷链接', 'error'); return; }
+        data.topLinks.push({ label: '新链接', href: './index.html' });
+        render();
+    }
+    function removeTopLink(i) {
+        data.topLinks.splice(i, 1);
+        render();
+    }
+
+    function refreshPreview() {
+        const bar = document.getElementById('previewBar');
+        bar.innerHTML = data.navigation.map(n => {
+            const cls = (n.children && n.children.length) ? 'has-sub' : '';
+            return `<a class="${cls}">${UI.escapeHtml(n.label || '?')}</a>`;
+        }).join('');
+    }
+
+    function save() {
+        Store.set('navigation', data);
+        UI.toast('已保存到本地', 'success');
+    }
+    async function reset() {
+        if (!confirm('恢复默认会丢弃所有修改。继续？')) return;
+        await Store.reset('navigation');
+        data = Store.get('navigation');
+        render();
+        refreshPreview();
+        UI.toast('已恢复默认数据', 'success');
+    }
+
+    init();
+  </script>
+</body>
+</html>

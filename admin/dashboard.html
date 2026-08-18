@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>仪表盘 - 后台管理系统</title>
+  <link rel="stylesheet" crossorigin href="../assets/admin-JBoxkqXL.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="app-header">
+      <div class="brand">JBEA Admin <span>江苏省自行车电动车协会 · 内容维护后台</span></div>
+      <div class="spacer"></div>
+      <a href="../index.html" target="_blank" title="打开前台首页">查看网站 ↗</a>
+      <button onclick="AUTH.logout()">退出登录</button>
+    </header>
+    <div class="app-main">
+      <aside class="app-side">
+        <div class="group-title">概览</div>
+        <a href="dashboard.html" class="active">仪表盘</a>
+        <div class="group-title">内容维护</div>
+        <a href="edit/news.html">新闻资讯</a>
+        <a href="edit/events.html">展会活动</a>
+        <a href="edit/magazines.html">行业杂志</a>
+        <a href="edit/standards.html">政策标准</a>
+        <a href="edit/branches.html">分支机构</a>
+        <a href="edit/wuxi-office.html">无锡办公室</a>
+        <a href="edit/downloads.html">下载资料</a>
+        <div class="group-title">页面配置</div>
+        <a href="edit/navigation.html">顶部导航</a>
+        <a href="edit/footer.html">底部信息</a>
+        <a href="edit/homepage.html">首页内容</a>
+        <div class="group-title">数据管理</div>
+        <a href="#" onclick="event.preventDefault(); exportAllNow();">导出全部</a>
+        <a href="#" onclick="event.preventDefault(); importAll();">导入备份</a>
+        <a href="#" onclick="event.preventDefault(); refreshAll();">重新加载</a>
+        <a href="github-config.html" style="color:#1a73c5;font-weight:600">⚙ GitHub 自动部署</a>
+      </aside>
+      <main class="app-content">
+        <h1 class="page-title">仪表盘</h1>
+        <p class="page-subtitle">在这里维护协会官网的所有动态内容。编辑后请记得"导出全部"备份并发送给运维同事更新部署。</p>
+
+        <div class="card" style="background:#f0f5fb;border-color:#1a73c5">
+          <div class="card-body" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <strong style="flex:1;color:#1e3a5f">📦 完成编辑后操作</strong>
+            <button class="btn btn-primary" onclick="exportAllNow()">导出全部 JSON</button>
+            <button class="btn" onclick="importAll()">导入备份</button>
+            <button class="btn" onclick="refreshAll()">重新加载默认</button>
+            <a class="btn" href="github-config.html" style="text-decoration:none">⚙ 自动部署</a>
+          </div>
+        </div>
+
+        <div class="stat-grid" id="stats"></div>
+
+        <h2 class="page-title" style="font-size:16px; margin-top: 16px;">快速入口</h2>
+        <div class="module-grid" id="modules"></div>
+
+        <div class="card mt-6">
+          <div class="card-head">
+            <h3>使用提示</h3>
+          </div>
+          <div class="card-body" style="font-size:13px; line-height:1.9; color:#404f63">
+            <p>① 各模块编辑入口在上方"快速入口"区域，点击进入对应编辑页。</p>
+            <p>② 新闻资讯编辑器支持从公众号复制粘贴（标题、日期、分类、正文），并可直接上传图片。</p>
+            <p>③ 所有改动实时保存到浏览器本地（LocalStorage），关闭浏览器不会丢失。</p>
+            <p>④ 编辑完成后，点击左侧"导出全部"按钮，下载一个 JSON 文件并发给运维同事部署上线。</p>
+            <p>⑤ 每次部署后，浏览器会自动从远端 JSON 重新加载最新数据。</p>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="js/auth.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/store.js"></script>
+  <script>
+    AUTH.guard();
+
+    const MODULES = [
+        { key: 'news',          name: '新闻资讯',     icon: '📰', desc: '协会动态 / 行业资讯 / 政策动态',  href: 'edit/news.html' },
+        { key: 'events',        name: '展会活动',     icon: '🗓', desc: 'CEB 南京展、CEB 无锡展等',         href: 'edit/events.html' },
+        { key: 'magazines',     name: '行业杂志',     icon: '📖', desc: '《江苏省自行车》《中国电动自行车网》', href: 'edit/magazines.html' },
+        { key: 'standards',     name: '政策标准',     icon: '📋', desc: '政策法规、国家标准、团体标准',      href: 'edit/standards.html' },
+        { key: 'branches',      name: '分支机构',     icon: '🏛', desc: '充换电、共享电单车专委会名单',     href: 'edit/branches.html' },
+        { key: 'wuxiOffice',    name: '无锡办公室',   icon: '🏢', desc: '无锡市电动车行业办公室成员名单',   href: 'edit/wuxi-office.html' },
+        { key: 'downloads',     name: '下载资料',     icon: '📁', desc: '入会申请、表格、文件下载',         href: 'edit/downloads.html' },
+        { key: 'homepage',      name: '首页内容',     icon: '🏠', desc: 'Hero 焦点图、快捷链接等',          href: 'edit/homepage.html' },
+        { key: 'navigation',    name: '顶部导航',     icon: '🧭', desc: '导航菜单与子菜单',                 href: 'edit/navigation.html' },
+        { key: 'footer',        name: '底部信息',     icon: '📞', desc: '联系方式、备案号、底部链接',       href: 'edit/footer.html' }
+    ];
+
+    function countItems(key) {
+        const d = Store.get(key);
+        if (!d) return 0;
+        return countNode(d);
+    }
+    function countNode(node) {
+        if (Array.isArray(node)) return node.length;
+        if (typeof node !== 'object' || !node) return 0;
+        let total = 0;
+        for (const v of Object.values(node)) {
+            if (Array.isArray(v)) total += v.length;
+            else if (typeof v === 'object' && v) {
+                // 优先检查 .rows（分支机构 / 无锡办公室）
+                if (Array.isArray(v.rows)) total += v.rows.length;
+                else if (Array.isArray(v.children)) total += v.children.length;
+                else total += countNode(v); // 递归
+            }
+        }
+        return total;
+    }
+
+    function render() {
+        // 统计
+        const stats = document.getElementById('stats');
+        stats.innerHTML = MODULES.map(m => {
+            const n = countItems(m.key);
+            return `<div class="stat-card"><div class="num">${n}</div><div class="lbl">${UI.escapeHtml(m.name)}</div></div>`;
+        }).join('');
+
+        // 模块入口
+        const grid = document.getElementById('modules');
+        grid.innerHTML = MODULES.map(m => `
+            <a class="module-card" href="${UI.escapeAttr(m.href)}">
+                <div class="module-icon">${m.icon}</div>
+                <div class="module-text">
+                    <strong>${UI.escapeHtml(m.name)}</strong>
+                    <small>${UI.escapeHtml(m.desc)}</small>
+                </div>
+            </a>
+        `).join('');
+    }
+
+    async function init() {
+        try {
+            await Store.loadAll();
+            render();
+        } catch (e) {
+            UI.toast('加载失败: ' + e.message, 'error');
+        }
+    }
+
+    async function exportAllNow() {
+        if (!confirm('确认导出全部模块的数据？')) return;
+        Store.exportAll();
+        UI.toast('已下载，请发送给运维同事部署', 'success');
+    }
+    async function importAll() {
+        const inp = document.createElement('input');
+        inp.type = 'file';
+        inp.accept = '.json';
+        inp.onchange = async () => {
+            const f = inp.files[0];
+            if (!f) return;
+            const ok = await Store.importJson(f);
+            if (ok) { UI.toast('已导入，请刷新页面查看', 'success'); render(); }
+        };
+        inp.click();
+    }
+    async function refreshAll() {
+        if (!confirm('将丢弃本地编辑，重新从网站加载默认数据。继续？')) return;
+        await Store.refreshAll();
+        render();
+        UI.toast('已重新加载默认数据', 'success');
+    }
+
+    init();
+  </script>
+</body>
+</html>

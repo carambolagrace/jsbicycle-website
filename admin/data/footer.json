@@ -1,0 +1,51 @@
+{
+  "quickEntries": [
+    {
+      "label": "关于协会",
+      "href": "./page.html?page=about"
+    },
+    {
+      "label": "新闻动态",
+      "href": "./page.html?page=news"
+    },
+    {
+      "label": "政策标准",
+      "href": "./page.html?page=standards"
+    },
+    {
+      "label": "展会活动",
+      "href": "./page.html?page=events"
+    }
+  ],
+  "memberEntries": [
+    {
+      "label": "入会申请",
+      "href": "./page.html?page=membership"
+    },
+    {
+      "label": "会员权益",
+      "href": "./page.html?page=membership"
+    },
+    {
+      "label": "资料下载",
+      "href": "./page.html?page=services"
+    },
+    {
+      "label": "联系协会",
+      "href": "./page.html?page=about#contact-info"
+    }
+  ],
+  "contact": {
+    "phone": [
+      "0510-85055112",
+      "0510-85051427"
+    ],
+    "email": "jbea@jsbicycle.com",
+    "address": "江苏省无锡市清扬路七号11层"
+  },
+  "copyright": {
+    "owner": "江苏省自行车电动车协会",
+    "icp": "苏ICP备2022003366号"
+  },
+  "slogan": "连接产业 · 服务会员 · 共创未来"
+}

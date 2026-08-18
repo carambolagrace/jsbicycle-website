@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>政策标准 - 后台管理系统</title>
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="app-header">
+      <div class="brand">JBEA Admin <span>政策标准管理</span></div>
+      <div class="spacer"></div>
+      <a href="../dashboard.html">← 返回仪表盘</a>
+      <a href="../index.html" target="_blank">查看网站 ↗</a>
+      <button onclick="AUTH.logout()">退出登录</button>
+    </header>
+    <div class="app-main">
+      <aside class="app-side">
+        <div class="group-title">概览</div>
+        <a href="../dashboard.html">仪表盘</a>
+        <div class="group-title">内容维护</div>
+        <a href="news.html">新闻资讯</a>
+        <a href="events.html">展会活动</a>
+        <a href="magazines.html">行业杂志</a>
+        <a href="standards.html" class="active">政策标准</a>
+        <a href="branches.html">分支机构</a>
+        <a href="wuxi-office.html">无锡办公室</a>
+        <a href="downloads.html">下载资料</a>
+        <div class="group-title">页面配置</div>
+        <a href="navigation.html">顶部导航</a>
+        <a href="footer.html">底部信息</a>
+        <a href="homepage.html">首页内容</a>
+        <div class="group-title">数据管理</div>
+        <a href="#" onclick="event.preventDefault(); Store.exportKey('standards');">导出本模块</a>
+      </aside>
+      <main class="app-content">
+        <h1 class="page-title">政策标准管理</h1>
+        <p class="page-subtitle">政策法规、国家标准、团体标准、认证规则文件。</p>
+
+        <div id="list"></div>
+
+        <div class="card mt-4">
+          <div class="card-head"><h3 id="formTitle">添加政策标准</h3></div>
+          <div class="card-body">
+            <form id="stdForm">
+              <input type="hidden" id="editIdx">
+              <div class="field-row">
+                <div class="field"><label>URL ID *</label><input type="text" id="id" required placeholder="battery"></div>
+                <div class="field"><label>类型</label>
+                  <select id="type">
+                    <option>国家标准</option>
+                    <option>团体标准</option>
+                    <option>政策法规</option>
+                    <option>认证规则</option>
+                  </select>
+                </div>
+              </div>
+              <div class="field"><label>标题 *</label><input type="text" id="title" required></div>
+              <div class="field-row">
+                <div class="field"><label>发布日期</label><input type="text" id="publishedAt" placeholder="2024-05-14"></div>
+                <div class="field"><label>状态</label><input type="text" id="status" placeholder="现行有效 / 征求意见阶段"></div>
+              </div>
+              <div class="field"><label>简介 / 摘要</label><textarea id="summary" rows="3"></textarea></div>
+              <div class="field"><label>内部文件 URL</label><input type="text" id="fileUrl" placeholder="./assets/standard-battery.pdf"></div>
+              <div class="field"><label>外部链接 URL</label><input type="text" id="externalUrl" placeholder="https://..."></div>
+              <div class="btn-group">
+                <button type="submit" class="btn btn-primary">保存到列表</button>
+                <button type="button" class="btn" onclick="resetForm()">清空表单</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <div class="btn-group mt-4">
+          <button class="btn btn-primary" onclick="saveAll()">保存所有修改到本地</button>
+          <button class="btn" onclick="Store.exportKey('standards')">导出 JSON</button>
+          <button class="btn" onclick="resetData()">恢复默认</button>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="../js/auth.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/store.js"></script>
+  <script>
+    AUTH.guard();
+    let data = [];
+    async function init() { await Store.loadAll(); data = Store.get('standards') || []; render(); }
+    function render() {
+        const list = document.getElementById('list');
+        if (!data.length) { list.innerHTML = '<div class="empty">暂无文件</div>'; return; }
+        list.innerHTML = data.map((it, i) => `
+            <div class="list-item">
+                <div class="list-item-main">
+                    <div class="list-item-title">${UI.escapeHtml(it.title || '')}</div>
+                    <div class="list-item-meta">
+                        <span class="tag tag-blue">${UI.escapeHtml(it.type || '')}</span>
+                        <span class="tag">${UI.escapeHtml(it.status || '')}</span>
+                        <span class="text-muted">${UI.escapeHtml(it.publishedAt || '')}</span>
+                    </div>
+                </div>
+                <button class="btn btn-sm" onclick="editItem(${i})">编辑</button>
+                <button class="btn btn-sm btn-danger" onclick="deleteItem(${i})">删除</button>
+            </div>
+        `).join('');
+    }
+    function collect() {
+        const g = id => document.getElementById(id).value.trim();
+        return {
+            id: g('id'), type: g('type'), title: g('title'),
+            publishedAt: g('publishedAt'), status: g('status'),
+            summary: g('summary'), fileUrl: g('fileUrl'), externalUrl: g('externalUrl')
+        };
+    }
+    function fill(it) {
+        document.getElementById('editIdx').value = data.indexOf(it);
+        ['id','type','title','publishedAt','status','summary','fileUrl','externalUrl'].forEach(k => {
+            document.getElementById(k).value = it[k] || '';
+        });
+        document.getElementById('formTitle').textContent = '编辑：' + (it.title || '');
+    }
+    function resetForm() {
+        document.getElementById('stdForm').reset();
+        document.getElementById('editIdx').value = '';
+        document.getElementById('formTitle').textContent = '添加政策标准';
+    }
+    function editItem(i) { fill(data[i]); window.scrollTo({ top: document.getElementById('stdForm').offsetTop - 80, behavior: 'smooth' }); }
+    function deleteItem(i) { if (!confirm('删除？')) return; data.splice(i, 1); render(); resetForm(); }
+    document.getElementById('stdForm').addEventListener('submit', e => {
+        e.preventDefault();
+        const it = collect();
+        if (!it.id || !it.title) { UI.toast('请填写 ID 和标题', 'error'); return; }
+        const idx = document.getElementById('editIdx').value;
+        if (idx === '') data.unshift(it); else data[+idx] = it;
+        render(); resetForm();
+        UI.toast('已暂存到列表', 'success');
+    });
+    function saveAll() { Store.set('standards', data); UI.toast('已保存到浏览器本地', 'success'); }
+    async function resetData() {
+        if (!confirm('恢复默认会丢弃所有修改。继续？')) return;
+        await Store.reset('standards');
+        data = Store.get('standards') || [];
+        render(); resetForm();
+        UI.toast('已恢复默认数据', 'success');
+    }
+    init();
+  </script>
+</body>
+</html>

@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>行业杂志 - 后台管理系统</title>
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="app-header">
+      <div class="brand">JBEA Admin <span>行业杂志管理</span></div>
+      <div class="spacer"></div>
+      <a href="../dashboard.html">← 返回仪表盘</a>
+      <a href="../index.html" target="_blank">查看网站 ↗</a>
+      <button onclick="AUTH.logout()">退出登录</button>
+    </header>
+    <div class="app-main">
+      <aside class="app-side">
+        <div class="group-title">概览</div>
+        <a href="../dashboard.html">仪表盘</a>
+        <div class="group-title">内容维护</div>
+        <a href="news.html">新闻资讯</a>
+        <a href="events.html">展会活动</a>
+        <a href="magazines.html" class="active">行业杂志</a>
+        <a href="standards.html">政策标准</a>
+        <a href="branches.html">分支机构</a>
+        <a href="wuxi-office.html">无锡办公室</a>
+        <a href="downloads.html">下载资料</a>
+        <div class="group-title">页面配置</div>
+        <a href="navigation.html">顶部导航</a>
+        <a href="footer.html">底部信息</a>
+        <a href="homepage.html">首页内容</a>
+        <div class="group-title">数据管理</div>
+        <a href="#" onclick="event.preventDefault(); Store.exportKey('magazines');">导出本模块</a>
+      </aside>
+      <main class="app-content">
+        <h1 class="page-title">行业杂志管理</h1>
+        <p class="page-subtitle">维护《江苏省自行车》与《中国电动自行车网》两本电子双月刊的基本信息。</p>
+
+        <div id="list"></div>
+
+        <div class="card mt-4">
+          <div class="card-head"><h3 id="formTitle">添加期刊</h3></div>
+          <div class="card-body">
+            <form id="magForm">
+              <input type="hidden" id="editIdx">
+              <div class="field-row">
+                <div class="field"><label>URL KEY *</label><input type="text" id="key" required placeholder="jsbicycle"></div>
+                <div class="field"><label>期刊名称 *</label><input type="text" id="title" required></div>
+              </div>
+              <div class="field-row">
+                <div class="field"><label>主办单位</label><input type="text" id="publisher"></div>
+                <div class="field"><label>期号</label><input type="text" id="period" placeholder="2026.07—08月"></div>
+              </div>
+              <div class="field-row">
+                <div class="field"><label>发行周期</label><input type="text" id="issue" placeholder="双月刊"></div>
+                <div class="field"><label>发布日期</label><input type="text" id="publishedAt"></div>
+              </div>
+              <div class="field"><label>封面图 URL</label><input type="text" id="cover"></div>
+              <div class="field"><label>PDF URL</label><input type="text" id="pdf"></div>
+              <div class="field">
+                <label>📤 上传新 PDF 期刊文件</label>
+                <div class="pdf-upload-row">
+                  <input type="file" id="pdfFile" accept="application/pdf" style="display:none" onchange="onPdfSelected(event)">
+                  <button type="button" class="btn" onclick="document.getElementById('pdfFile').click()">📁 选择 PDF 文件</button>
+                  <span id="pdfFileName" class="pdf-filename">未选择</span>
+                </div>
+                <div class="help">选择文件后将自动压缩并上传到 GitHub（约 30-50% 文件减小，画质保留 ~92%）。上传成功后会自动填入上方 PDF URL。</div>
+                <div id="pdfProgress" class="pdf-progress" style="display:none">
+                  <div class="pdf-progress-bar"><div id="pdfProgressBar"></div></div>
+                  <div id="pdfProgressText" class="pdf-progress-text"></div>
+                </div>
+                <div id="pdfResult" class="pdf-result"></div>
+              </div>
+              <div class="field"><label>简介</label><textarea id="summary" rows="3"></textarea></div>
+              <div class="field"><label>状态</label>
+                <select id="status">
+                  <option value="current">最新期刊</option>
+                  <option value="archive">往期归档</option>
+                </select>
+              </div>
+              <div class="btn-group">
+                <button type="submit" class="btn btn-primary">保存到列表</button>
+                <button type="button" class="btn" onclick="resetForm()">清空表单</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <div class="btn-group mt-4">
+          <button class="btn btn-primary" onclick="saveAll()">保存所有修改到本地</button>
+          <button class="btn" onclick="Store.exportKey('magazines')">导出 JSON</button>
+          <button class="btn" onclick="resetData()">恢复默认</button>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="../js/auth.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/store.js"></script>
+  <script src="../js/github.js"></script>
+  <script src="../js/pdf-helper.js"></script>
+  <script>
+    AUTH.guard();
+    let data = [];
+
+    async function init() {
+        await Store.loadAll();
+        data = Store.get('magazines') || [];
+        render();
+    }
+
+    function render() {
+        const list = document.getElementById('list');
+        if (!data.length) { list.innerHTML = '<div class="empty">暂无期刊</div>'; return; }
+        list.innerHTML = data.map((m, i) => `
+            <div class="list-item">
+                <div class="list-item-main">
+                    <div class="list-item-title">${UI.escapeHtml(m.title || '(无标题)')}</div>
+                    <div class="list-item-meta">
+                        <span class="tag">${UI.escapeHtml(m.period || '')}</span>
+                        <span class="tag tag-blue">${UI.escapeHtml(m.status === 'current' ? '最新' : '往期')}</span>
+                    </div>
+                </div>
+                <button class="btn btn-sm" onclick="editItem(${i})">编辑</button>
+                <button class="btn btn-sm btn-danger" onclick="deleteItem(${i})">删除</button>
+            </div>
+        `).join('');
+    }
+
+    function collect() {
+        const g = id => document.getElementById(id).value.trim();
+        return {
+            key: g('key'), title: g('title'),
+            publisher: g('publisher'), period: g('period'),
+            issue: g('issue'), publishedAt: g('publishedAt'),
+            cover: g('cover'), pdf: g('pdf'),
+            summary: g('summary'), status: g('status')
+        };
+    }
+    function fill(item) {
+        document.getElementById('editIdx').value = data.indexOf(item);
+        ['key','title','publisher','period','issue','publishedAt','cover','pdf','summary','status'].forEach(k => {
+            const el = document.getElementById(k);
+            el.value = item[k] || '';
+        });
+        document.getElementById('formTitle').textContent = '编辑期刊：' + (item.title || '');
+    }
+    function resetForm() {
+        document.getElementById('magForm').reset();
+        document.getElementById('editIdx').value = '';
+        document.getElementById('formTitle').textContent = '添加期刊';
+    }
+    function editItem(i) { fill(data[i]); window.scrollTo({ top: document.getElementById('magForm').offsetTop - 80, behavior: 'smooth' }); }
+    function deleteItem(i) {
+        if (!confirm('删除"' + data[i].title + '"？')) return;
+        data.splice(i, 1);
+        render(); resetForm();
+    }
+    document.getElementById('magForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const item = collect();
+        if (!item.key || !item.title) { UI.toast('请填写 KEY 和名称', 'error'); return; }
+        const idx = document.getElementById('editIdx').value;
+        if (idx === '') data.push(item);
+        else data[+idx] = item;
+        render(); resetForm();
+        UI.toast('已暂存到列表', 'success');
+    });
+    function saveAll() { Store.set('magazines', data); UI.toast('已保存到浏览器本地', 'success'); }
+    async function resetData() {
+        if (!confirm('恢复默认会丢弃所有修改。继续？')) return;
+        await Store.reset('magazines');
+        data = Store.get('magazines') || [];
+        render(); resetForm();
+        UI.toast('已恢复默认数据', 'success');
+    }
+
+    // ===== PDF 上传处理 =====
+    function setProgress(pct, text) {
+        const bar = document.getElementById('pdfProgressBar');
+        const wrap = document.getElementById('pdfProgress');
+        const txt = document.getElementById('pdfProgressText');
+        if (bar) bar.style.width = Math.max(0, Math.min(100, pct)) + '%';
+        if (wrap) wrap.style.display = pct >= 0 ? 'block' : 'none';
+        if (txt) txt.textContent = text || '';
+    }
+
+    // Uint8Array → base64（用 FileReader 避免栈溢出）
+    function uint8ToBase64(bytes) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => {
+                // result 格式: "data:application/octet-stream;base64,XXXXX"
+                const base64 = String(reader.result).split(',')[1];
+                resolve(base64);
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(new Blob([bytes]));
+        });
+    }
+
+    async function onPdfSelected(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const fileNameEl = document.getElementById('pdfFileName');
+        const resultEl = document.getElementById('pdfResult');
+        fileNameEl.textContent = file.name + '（' + (file.size / 1024 / 1024).toFixed(2) + ' MB）';
+        resultEl.innerHTML = '';
+        setProgress(5, '正在读取文件...');
+
+        if (!GitHub.isConfigured()) {
+            resultEl.innerHTML = '<div class="alert alert-error">⚠ 请先在 <a href="../github-config.html">GitHub 配置</a> 页面设置仓库信息和 Token</div>';
+            setProgress(-1);
+            return;
+        }
+
+        try {
+            const originalBuf = await PDFHelper.fileToArrayBuffer(file);
+            setProgress(15, '正在压缩 PDF（保持画质）...');
+
+            const compressed = await PDFHelper.smartCompress(originalBuf);
+            const ratio = ((file.size - compressed.byteLength) / file.size * 100).toFixed(0);
+            setProgress(45, `压缩完成：${(file.size / 1024 / 1024).toFixed(2)} MB → ${(compressed.byteLength / 1024 / 1024).toFixed(2)} MB（减小 ${ratio}%）`);
+
+            // 自动生成文件名：基于 URL KEY + 月份
+            const urlKey = document.getElementById('key').value.trim() || 'magazine';
+            const period = document.getElementById('period').value.trim() || '';
+            // 提取月份数字 (例如 "2026.07—08月" → "2026-07")
+            const monthMatch = period.match(/(\d{4})[.\-](\d{1,2})/);
+            const monthStr = monthMatch ? `${monthMatch[1]}-${monthMatch[2].padStart(2, '0')}` : 'current';
+            const targetPath = `public/assets/magazine-${urlKey}-${monthStr}.pdf`;
+
+            setProgress(50, '正在上传到 GitHub...');
+            // 上传到 GitHub（用 FileReader 转 base64，避免栈溢出）
+            const c = GitHub.getConfig();
+            const fileSha = await GitHub.getFileContent(targetPath).then(r => r.sha).catch(() => null);
+            const base64 = await uint8ToBase64(compressed);
+            const body = {
+                message: `📎 上传杂志 PDF: ${file.name} → ${targetPath}`,
+                content: base64,
+                ...(fileSha ? { sha: fileSha } : {})
+            };
+            await GitHub.api('PUT', `/repos/${c.owner}/${c.repo}/contents/${encodeURI(targetPath)}`, body);
+            setProgress(100, '✓ 上传完成！');
+
+            // 自动填入 PDF URL（指向 GitHub raw 或仓库路径）
+            // 实际上 Netlify 会从仓库的 public/assets/ 复制到 dist/assets/
+            const pdfUrl = `/assets/magazine-${urlKey}-${monthStr}.pdf`;
+            document.getElementById('pdf').value = pdfUrl;
+
+            resultEl.innerHTML = `
+                <div class="alert alert-success">
+                    <strong>✓ 上传成功！</strong><br>
+                    原始：${(file.size / 1024 / 1024).toFixed(2)} MB<br>
+                    压缩后：${(compressed.byteLength / 1024 / 1024).toFixed(2)} MB（减小 ${ratio}%）<br>
+                    文件路径：<code>${targetPath}</code><br>
+                    网站 URL：<code>${pdfUrl}</code><br>
+                    GitHub 已收到 commit，Netlify 正在自动部署（约 2-3 分钟生效）
+                </div>`;
+            UI.toast('PDF 上传成功！', 'success');
+        } catch (err) {
+            console.error(err);
+            resultEl.innerHTML = `<div class="alert alert-error">✗ 上传失败：${err.message}<br><small>如果是 401 错误，可能是文件仍超过 GitHub 限制。请先用本地工具（如 Adobe Acrobat / Foxit）压缩后再上传。</small></div>`;
+            UI.toast('上传失败', 'error');
+            setProgress(-1);
+        }
+    }
+
+    init();
+  </script>
+</body>
+</html>

@@ -1,0 +1,896 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="江苏省自行车电动车协会官方行业杂志在线阅览 — 《江苏省自行车》《中国电动自行车网》电子双月刊，翻页式电子书阅读体验。" />
+  <title>行业杂志 · 在线阅览｜江苏省自行车电动车协会</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+  <link rel="stylesheet" href="assets/main.css" />
+  <style>
+    /* ========== 杂志电子书阅读器专属样式 ========== */
+    .magazine-page {
+      background: linear-gradient(180deg, #f4f6fa 0%, #e9edf4 100%);
+      min-height: 100vh;
+    }
+
+    /* Hero 区 */
+    .magazine-hero {
+      padding: 56px 0 40px;
+      background:
+        radial-gradient(1100px 480px at 88% -10%, rgba(22, 60, 99, 0.10) 0%, transparent 60%),
+        radial-gradient(900px 420px at 8% 110%, rgba(44, 126, 197, 0.08) 0%, transparent 65%),
+        linear-gradient(180deg, #ffffff 0%, #f4f6fa 100%);
+    }
+    .magazine-hero-inner {
+      display: grid;
+      grid-template-columns: minmax(220px, 320px) 1fr;
+      gap: 48px;
+      align-items: center;
+    }
+    .magazine-cover {
+      position: relative;
+      aspect-ratio: 3 / 4;
+      border-radius: 14px;
+      overflow: hidden;
+      background: linear-gradient(135deg, #163c63 0%, #10314f 50%, #0a2240 100%);
+      box-shadow:
+        0 30px 60px -20px rgba(22, 60, 99, 0.45),
+        0 8px 20px -6px rgba(22, 60, 99, 0.25),
+        0 0 0 1px rgba(255, 255, 255, 0.06) inset;
+      transform: perspective(800px) rotateY(-6deg);
+      transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    .magazine-cover:hover { transform: perspective(800px) rotateY(-2deg); }
+    .magazine-cover canvas,
+    .magazine-cover img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .magazine-cover-loading {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(255, 255, 255, 0.55);
+      font-size: 13px;
+      letter-spacing: 0.06em;
+    }
+    .magazine-cover-loading::after {
+      content: '';
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.15);
+      border-top-color: rgba(255, 255, 255, 0.7);
+      animation: spin 0.9s linear infinite;
+      margin-left: 12px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .magazine-info { min-width: 0; }
+    .magazine-info .eyebrow {
+      font-size: 12px;
+      letter-spacing: 0.18em;
+      color: #6c7a90;
+      text-transform: uppercase;
+      margin: 0 0 14px;
+    }
+    .magazine-info h1 {
+      font-size: clamp(32px, 4vw, 44px);
+      font-weight: 700;
+      color: #0a2240;
+      margin: 0 0 8px;
+      letter-spacing: -0.01em;
+    }
+    .magazine-info .subtitle {
+      font-size: 14px;
+      letter-spacing: 0.16em;
+      color: #2c7ec5;
+      text-transform: uppercase;
+      margin: 0 0 18px;
+    }
+    .magazine-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 0 0 18px;
+    }
+    .magazine-meta .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: rgba(44, 126, 197, 0.08);
+      color: #163c63;
+      border-radius: 999px;
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      border: 1px solid rgba(44, 126, 197, 0.12);
+    }
+    .magazine-meta .chip svg { width: 12px; height: 12px; }
+    .magazine-info .desc {
+      font-size: 16px;
+      line-height: 1.7;
+      color: #475569;
+      max-width: 640px;
+      margin: 0 0 24px;
+    }
+    .magazine-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+    .magazine-actions .btn-primary {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 22px;
+      background: linear-gradient(135deg, #2c7ec5 0%, #163c63 100%);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      letter-spacing: 0.04em;
+      text-decoration: none;
+      box-shadow: 0 10px 24px -10px rgba(22, 60, 99, 0.5);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .magazine-actions .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 16px 30px -12px rgba(22, 60, 99, 0.6);
+    }
+    .magazine-actions .btn-ghost {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 20px;
+      background: rgba(255, 255, 255, 0.7);
+      color: #163c63;
+      border: 1px solid rgba(22, 60, 99, 0.15);
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+    .magazine-actions .btn-ghost:hover { background: #fff; }
+
+    /* 阅读器主区域 */
+    .magazine-viewer {
+      padding: 32px 0 64px;
+    }
+    .magazine-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 20px;
+      background: #ffffff;
+      border-radius: 14px 14px 0 0;
+      border: 1px solid rgba(22, 60, 99, 0.08);
+      border-bottom: none;
+      box-shadow: 0 -2px 12px -4px rgba(22, 60, 99, 0.06);
+      flex-wrap: wrap;
+    }
+    .toolbar-group { display: flex; align-items: center; gap: 8px; }
+    .toolbar-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      height: 36px; padding: 0 12px;
+      background: transparent;
+      color: #163c63;
+      border: 1px solid rgba(22, 60, 99, 0.15);
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .toolbar-btn:hover { background: rgba(44, 126, 197, 0.06); border-color: rgba(22, 60, 99, 0.3); }
+    .toolbar-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .toolbar-btn svg { width: 14px; height: 14px; }
+    .page-indicator {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-variant-numeric: tabular-nums;
+      font-size: 14px;
+      color: #163c63;
+      font-weight: 500;
+    }
+    .page-indicator input {
+      width: 48px;
+      height: 30px;
+      text-align: center;
+      border: 1px solid rgba(22, 60, 99, 0.15);
+      border-radius: 6px;
+      font-variant-numeric: tabular-nums;
+      font-size: 13px;
+      color: #163c63;
+      background: #fff;
+      outline: none;
+    }
+    .page-indicator input:focus { border-color: #2c7ec5; }
+    .page-total { color: #6c7a90; font-weight: 400; }
+
+    /* 渲染区 */
+    .magazine-stage {
+      position: relative;
+      background: #1a1f2e;
+      background: linear-gradient(180deg, #1e2433 0%, #15191f 100%);
+      min-height: 70vh;
+      border: 1px solid rgba(22, 60, 99, 0.1);
+      border-top: none;
+      border-radius: 0 0 14px 14px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .stage-loading {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: rgba(255, 255, 255, 0.7);
+      gap: 16px;
+      transition: opacity 0.3s;
+    }
+    .stage-loading.hidden { opacity: 0; pointer-events: none; }
+    .stage-loading .spinner {
+      width: 36px; height: 36px;
+      border: 3px solid rgba(255, 255, 255, 0.1);
+      border-top-color: #2c7ec5;
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+    }
+    .stage-loading .progress {
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      color: rgba(255, 255, 255, 0.5);
+    }
+    .page-canvas-wrap {
+      max-width: 100%;
+      max-height: 78vh;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      animation: pageIn 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    .page-canvas-wrap.visible { display: flex; }
+    @keyframes pageIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    #pageImage {
+      max-width: 100%;
+      max-height: 78vh;
+      box-shadow:
+        0 30px 80px -20px rgba(0, 0, 0, 0.6),
+        0 8px 24px -6px rgba(0, 0, 0, 0.4);
+      background: #fff;
+      border-radius: 4px;
+      display: block;
+    }
+    /* 左右翻页按钮 */
+    .page-nav-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #fff;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s;
+      opacity: 0;
+      z-index: 5;
+    }
+    .magazine-stage:hover .page-nav-btn { opacity: 1; }
+    .page-nav-btn:hover { background: rgba(255, 255, 255, 0.2); }
+    .page-nav-btn:disabled { display: none; }
+    .page-nav-btn.prev { left: 16px; }
+    .page-nav-btn.next { right: 16px; }
+    .page-nav-btn svg { width: 22px; height: 22px; }
+
+    /* 错误状态 */
+    .stage-error {
+      position: absolute;
+      inset: 0;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      color: rgba(255, 255, 255, 0.8);
+      padding: 24px;
+      text-align: center;
+    }
+    .stage-error.visible { display: flex; }
+    .stage-error .icon { font-size: 32px; opacity: 0.6; }
+    .stage-error .message { font-size: 14px; max-width: 380px; line-height: 1.6; }
+
+    /* 往期杂志区 */
+    .magazine-related {
+      padding: 56px 0;
+      background: #ffffff;
+      border-top: 1px solid rgba(22, 60, 99, 0.06);
+    }
+    .related-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 24px;
+      margin-top: 24px;
+    }
+    .related-card {
+      padding: 24px;
+      background: #f9fafc;
+      border: 1px solid rgba(22, 60, 99, 0.06);
+      border-radius: 14px;
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.2s;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .related-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 16px 30px -16px rgba(22, 60, 99, 0.3);
+      border-color: rgba(44, 126, 197, 0.25);
+    }
+    .related-card .label {
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      color: #6c7a90;
+      text-transform: uppercase;
+    }
+    .related-card h3 {
+      font-size: 18px;
+      color: #0a2240;
+      margin: 0;
+    }
+    .related-card p { color: #6c7a90; font-size: 13px; margin: 0; }
+    .related-card .arrow {
+      margin-top: 8px;
+      color: #2c7ec5;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    /* 响应式 */
+    @media (max-width: 760px) {
+      .magazine-hero-inner { grid-template-columns: 1fr; gap: 28px; }
+      .magazine-cover { max-width: 240px; transform: none; margin: 0 auto; }
+      .magazine-cover:hover { transform: none; }
+      .magazine-info { text-align: center; }
+      .magazine-info .desc { margin-left: auto; margin-right: auto; }
+      .magazine-actions { justify-content: center; }
+      .magazine-meta { justify-content: center; }
+      .magazine-toolbar { padding: 10px 12px; gap: 8px; }
+      .toolbar-btn { padding: 0 10px; font-size: 12px; }
+      .toolbar-btn .label { display: none; }
+      .page-nav-btn { opacity: 1; width: 40px; height: 40px; }
+      .page-nav-btn.prev { left: 6px; } .page-nav-btn.next { right: 6px; }
+      .page-canvas-wrap { padding: 12px; }
+    }
+
+    /* 全屏模式 */
+    .magazine-viewer.fullscreen {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: #0f1218;
+      padding: 16px;
+    }
+    .magazine-viewer.fullscreen .magazine-toolbar {
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      background: #1a1f2e;
+      color: #fff;
+    }
+    .magazine-viewer.fullscreen .toolbar-btn {
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+    .magazine-viewer.fullscreen .toolbar-btn:hover { background: rgba(255, 255, 255, 0.08); }
+    .magazine-viewer.fullscreen .page-indicator { color: #fff; }
+    .magazine-viewer.fullscreen .page-indicator input { background: #0f1218; color: #fff; border-color: rgba(255, 255, 255, 0.2); }
+    .magazine-viewer.fullscreen .page-indicator .page-total { color: rgba(255, 255, 255, 0.5); }
+    .magazine-viewer.fullscreen .magazine-stage {
+      flex: 1;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      margin-top: 12px;
+      min-height: 0;
+    }
+    .magazine-viewer.fullscreen #pageImage { max-height: calc(100vh - 160px); }
+  </style>
+</head>
+<body class="magazine-page">
+  <div class="topline">
+    <div class="container topline-inner">
+      <span>江苏省自行车电动车协会 · 中国自行车协会助力车专业委员会</span>
+      <div class="topline-links">
+        <a href="page.html?page=about">协会简介</a>
+        <span class="topline-separator"></span>
+        <a href="page.html?page=about#contact-info">联系我们</a>
+        <span class="topline-separator"></span>
+        <a href="page.html?page=membership">会员入口</a>
+      </div>
+    </div>
+  </div>
+
+  <header class="site-header" id="top">
+    <div class="container header-inner">
+      <a class="brand" href="index.html" aria-label="返回网站首页">
+        <img src="assets/logo.jpg" alt="江苏省自行车电动车协会标志" />
+        <span class="brand-text">
+          <strong>江苏省自行车电动车协会</strong>
+          <small>JIANGSU BICYCLE &amp; ELECTRIC VEHICLE ASSOCIATION</small>
+        </span>
+      </a>
+      <button class="menu-toggle" type="button" aria-label="打开菜单" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="main-nav" aria-label="主导航">
+        <div class="nav-item"><a class="nav-link" href="index.html">首页</a></div>
+        <div class="nav-item has-children">
+          <a class="nav-link" href="page.html?page=about">协会之窗<span class="chevron">▾</span></a>
+          <div class="nav-sub">
+            <a href="page.html?page=about">协会简介</a>
+            <a href="page.html?page=about#organization">组织架构</a>
+            <a href="members.html">会员名录</a>
+            <a href="page.html?page=about#contact-info">联系我们</a>
+          </div>
+        </div>
+        <div class="nav-item has-children">
+          <a class="nav-link" href="page.html?page=standards">行业服务<span class="chevron">▾</span></a>
+          <div class="nav-sub">
+            <a href="page.html?page=standards">行业标准</a>
+            <a href="page.html?page=events">展会资讯</a>
+            <a href="index.html#testing">CCC 检测认证</a>
+          </div>
+        </div>
+        <div class="nav-item has-children">
+          <a class="nav-link" href="page.html?page=membership">会员服务<span class="chevron">▾</span></a>
+          <div class="nav-sub">
+            <a href="page.html?page=membership#join">入会申请</a>
+            <a href="page.html?page=membership#process">入会流程</a>
+            <a href="members.html">会员单位</a>
+          </div>
+        </div>
+        <div class="nav-item has-children">
+          <a class="nav-link" href="page.html?page=news">资讯动态<span class="chevron">▾</span></a>
+          <div class="nav-sub">
+            <a href="page.html?page=news">行业动态</a>
+            <a href="page.html?page=standards">政策法规</a>
+            <a href="page.html?page=services">通知公告</a>
+          </div>
+        </div>
+        <div class="nav-item has-children">
+          <a class="nav-link active" href="page.html?page=magazines">行业杂志<span class="chevron">▾</span></a>
+          <div class="nav-sub">
+            <a href="magazine-viewer.html?id=jsbicycle">《江苏省自行车》</a>
+            <a href="magazine-viewer.html?id=chinabike">《中国电动自行车网》</a>
+          </div>
+        </div>
+      </nav>
+      <button class="search-button" type="button" aria-label="打开站内搜索">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 5 5"></path></svg>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Hero 区：杂志封面 + 标题信息 -->
+    <section class="magazine-hero">
+      <div class="container magazine-hero-inner">
+        <div class="magazine-cover" id="coverBox">
+          <div class="magazine-cover-loading">加载封面</div>
+        </div>
+        <div class="magazine-info">
+          <p class="eyebrow" id="heroEyebrow">INDUSTRY MAGAZINE / 行业杂志</p>
+          <h1 id="heroTitle">杂志标题</h1>
+          <p class="subtitle" id="heroSubtitle">SUBTITLE</p>
+          <div class="magazine-meta">
+            <span class="chip">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/></svg>
+              <span id="metaIssue">2026.07-08 · 第04期</span>
+            </span>
+            <span class="chip">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h12a4 4 0 0 1 4 4v12H8a4 4 0 0 1-4-4z"/></svg>
+              <span id="metaFormat">电子双月刊 · 翻页式阅读</span>
+            </span>
+            <span class="chip">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+              <span id="metaRead">预计 8 分钟阅读</span>
+            </span>
+          </div>
+          <p class="desc" id="heroDesc">杂志描述</p>
+          <div class="magazine-actions">
+            <button class="btn-primary" id="startReadingBtn" type="button">
+              <span>开始阅读</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" width="16" height="16"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+            </button>
+            <a class="btn-ghost" id="downloadBtn" href="#" download>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M12 4v12M7 11l5 5 5-5M5 20h14"/></svg>
+              <span>下载本期电子杂志</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 阅读器 -->
+    <section class="magazine-viewer" id="viewerSection">
+      <div class="container">
+        <div class="magazine-toolbar" id="viewerToolbar">
+          <div class="toolbar-group">
+            <button class="toolbar-btn" id="prevPageBtn" type="button" aria-label="上一页">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
+              <span class="label">上一页</span>
+            </button>
+            <button class="toolbar-btn" id="nextPageBtn" type="button" aria-label="下一页">
+              <span class="label">下一页</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 18l6-6-6-6"/></svg>
+            </button>
+          </div>
+          <div class="page-indicator">
+            <input id="pageInput" type="number" min="1" value="1" aria-label="当前页码" />
+            <span>/</span>
+            <span class="page-total" id="pageTotal">--</span>
+          </div>
+          <div class="toolbar-group">
+            <button class="toolbar-btn" id="zoomOutBtn" type="button" aria-label="缩小">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4M8 11h6"/></svg>
+            </button>
+            <button class="toolbar-btn" id="zoomInBtn" type="button" aria-label="放大">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4M11 8v6M8 11h6"/></svg>
+            </button>
+            <button class="toolbar-btn" id="fullscreenBtn" type="button" aria-label="全屏阅读">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" id="fullscreenIcon"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+              <span class="label">全屏</span>
+            </button>
+            <a class="toolbar-btn" id="downloadBtnToolbar" href="#" download>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 4v12M7 11l5 5 5-5M5 20h14"/></svg>
+              <span class="label">下载</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="magazine-stage" id="stage">
+          <div class="stage-loading" id="stageLoading">
+            <div class="spinner"></div>
+            <div class="progress" id="loadingProgress">正在加载杂志内容…</div>
+          </div>
+          <div class="stage-error" id="stageError">
+            <div class="icon">⚠</div>
+            <div class="message" id="errorMessage">杂志加载失败，请稍后重试。</div>
+          </div>
+          <div class="page-canvas-wrap" id="canvasWrap">
+            <img id="pageImage" alt="杂志页面" decoding="async" />
+          </div>
+          <button class="page-nav-btn prev" id="prevPageSideBtn" type="button" aria-label="上一页">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <button class="page-nav-btn next" id="nextPageSideBtn" type="button" aria-label="下一页">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 18l6-6-6-6"/></svg>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 往期杂志推荐 -->
+    <section class="magazine-related">
+      <div class="container">
+        <p class="section-kicker">MORE ISSUES / 往期杂志</p>
+        <h2>查看更多期次</h2>
+        <div class="related-grid">
+          <a class="related-card" id="otherMagazineCard" href="#">
+            <span class="label">SWITCH MAGAZINE / 切换期刊</span>
+            <h3 id="otherMagazineTitle">另一本杂志</h3>
+            <p id="otherMagazineDesc">杂志描述</p>
+            <span class="arrow">前往阅读 →</span>
+          </a>
+          <a class="related-card" href="page.html?page=magazines">
+            <span class="label">DIGEST ARCHIVE / 杂志归档</span>
+            <h3>全部期刊与订阅信息</h3>
+            <p>查看往期目录、订阅入口与广告投放合作。</p>
+            <span class="arrow">浏览归档 →</span>
+          </a>
+          <a class="related-card" href="page.html?page=about#contact-info">
+            <span class="label">CONTACT / 联系秘书处</span>
+            <h3>加入读者名单</h3>
+            <p>会员单位默认同步接收电子双月刊，变更邮箱请联系协会秘书处。</p>
+            <span class="arrow">联系秘书处 →</span>
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer" id="contact">
+    <div class="container footer-main">
+      <div class="footer-brand"><div class="footer-mark">JBEA</div><h3>江苏省自行车电动车协会</h3><p>连接产业 · 服务会员 · 共创未来</p></div>
+      <div class="footer-column"><h4>快速入口</h4>
+        <a href="page.html?page=about">协会之窗</a>
+        <a href="page.html?page=news">新闻动态</a>
+        <a href="page.html?page=standards">政策标准</a>
+        <a href="page.html?page=events">展会活动</a>
+      </div>
+      <div class="footer-column"><h4>会员服务</h4>
+        <a href="page.html?page=membership">入会申请</a>
+        <a href="page.html?page=membership">会员权益</a>
+        <a href="page.html?page=services">资料下载</a>
+        <a href="page.html?page=about#contact-info">联系协会</a>
+      </div>
+      <div class="footer-column"><h4>合作伙伴</h4>
+        <a href="https://www.china-bicycle.com/" target="_blank" rel="noopener">中国自行车协会</a>
+        <a href="https://www.jsbicycle.com/" target="_blank" rel="noopener">江苏省自行车有限公司</a>
+        <a href="https://www.chinaebike.net/" target="_blank" rel="noopener">CEB中国电动车网</a>
+        <a href="https://www.cti-cert.com/" target="_blank" rel="noopener">华测检测认证集团股份有限公司</a>
+      </div>
+      <div class="footer-contact"><h4>联系我们</h4>
+        <p>0510-85055112 / 85051427</p>
+        <p>jbea@jsbicycle.com</p>
+        <p>江苏省无锡市清扬路七号11层</p>
+      </div>
+      <div class="footer-qr">
+        <div class="qr-placeholder"><img src="assets/qrcode.jpg" alt="江苏省自行车电动车协会公众号二维码" /></div>
+        <p>关注协会公众号</p>
+      </div>
+    </div>
+    <div class="container footer-bottom">
+      <span>© <span id="current-year">2026</span> 江苏省自行车电动车协会 版权所有</span>
+      <span>苏ICP备2022003366号</span>
+      <a href="#top">返回顶部 ↑</a>
+    </div>
+  </footer>
+
+  <script src="assets/script.js"></script>
+  <script>
+    /* ========== 杂志数据与阅读器逻辑 ========== */
+    const MAGAZINES = {
+      jsbicycle: {
+        title: '《江苏省自行车》',
+        subtitle: 'JSBEVA REVIEW',
+        issue: '2026 年 07—08 月 · 第 04 期',
+        totalPages: 36,
+        pagesDir: 'assets/magazines/jsbicycle/pages',
+        cover: 'assets/magazines/jsbicycle/pages/page-01.jpg',
+        desc: '聚焦江苏自行车产业链上下游的政策、趋势、企业与会员故事，记录企业成长与政策变迁。',
+        gradient: 'linear-gradient(135deg, #2c7ec5 0%, #1f5d99 50%, #163c63 100%)'
+      },
+      chinabike: {
+        title: '《中国电动自行车网》',
+        subtitle: 'CHINA E-BIKE REVIEW',
+        issue: '2026 年 07—08 月 · 第 04 期',
+        totalPages: 42,
+        pagesDir: 'assets/magazines/chinabike/pages',
+        cover: 'assets/magazines/chinabike/pages/page-01.jpg',
+        desc: '关注电动两轮车产业新闻、产品趋势、消费者渠道、品牌运营等内容，提供面向市场一线的综合资讯。',
+        gradient: 'linear-gradient(135deg, #163c63 0%, #10314f 50%, #0a2240 100%)'
+      }
+    };
+
+    const params = new URLSearchParams(window.location.search);
+    const currentKey = params.get('id') === 'chinabike' ? 'chinabike' : 'jsbicycle';
+    const current = MAGAZINES[currentKey];
+    const otherKey = currentKey === 'jsbicycle' ? 'chinabike' : 'jsbicycle';
+    const other = MAGAZINES[otherKey];
+
+    document.getElementById('heroTitle').textContent = current.title;
+    document.getElementById('heroSubtitle').textContent = current.subtitle;
+    document.getElementById('heroDesc').textContent = current.desc;
+    document.getElementById('metaIssue').textContent = current.issue;
+    document.getElementById('metaRead').textContent = '共 ' + current.totalPages + ' 页 · 预计 8 分钟阅读';
+    document.getElementById('otherMagazineCard').href = 'magazine-viewer.html?id=' + otherKey;
+    document.getElementById('otherMagazineTitle').textContent = other.title;
+    document.getElementById('otherMagazineDesc').textContent = other.desc;
+    document.title = current.title + ' · 在线阅览｜江苏省自行车电动车协会';
+
+    /* 图片翻页渲染器 */
+    let currentPageNum = 1;
+    let totalPages = current.totalPages;
+    let currentScale = 1.0;
+    const SCALE_STEP = 0.15;
+    const SCALE_MIN = 0.6;
+    const SCALE_MAX = 2.0;
+
+    const $ = (id) => document.getElementById(id);
+
+    /* 加载封面图 */
+    (function loadCover() {
+      const coverBox = $('coverBox');
+      const loading = coverBox.querySelector('.magazine-cover-loading');
+      const img = new Image();
+      img.alt = current.title + ' 封面';
+      img.onload = () => {
+        if (loading) loading.remove();
+        coverBox.appendChild(img);
+      };
+      img.onerror = () => {
+        if (loading) loading.textContent = '封面加载失败';
+      };
+      img.src = current.cover;
+    })();
+
+    /* 设置初始 UI */
+    $('pageTotal').textContent = String(totalPages);
+    $('pageInput').max = String(totalPages);
+
+    /* 核心：渲染指定页码的图片（带 fetch + blob + 重试，规避 Surge CDN ERR_CONTENT_LENGTH_MISMATCH） */
+    let pendingPageNum = null;
+    let isRendering = false;
+    const MAX_RETRIES = 3;
+    const RETRY_DELAY = 600;
+
+    async function loadImageBlob(url) {
+      // 优先尝试一次普通 fetch；若失败（含 ERR_CONTENT_LENGTH_MISMATCH）改用 no-cache 重新请求
+      let lastErr = null;
+      for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+        try {
+          const resp = await fetch(url, { cache: attempt === 0 ? 'default' : 'no-store' });
+          if (!resp.ok) throw new Error('HTTP ' + resp.status);
+          const blob = await resp.blob();
+          if (blob.size === 0) throw new Error('Empty response');
+          return URL.createObjectURL(blob);
+        } catch (e) {
+          lastErr = e;
+          if (attempt < MAX_RETRIES - 1) {
+            await new Promise(r => setTimeout(r, RETRY_DELAY * (attempt + 1)));
+          }
+        }
+      }
+      throw lastErr || new Error('加载失败');
+    }
+
+    async function renderPage(num) {
+      if (isRendering) {
+        pendingPageNum = num;
+        return;
+      }
+      num = Math.max(1, Math.min(num, totalPages));
+      currentPageNum = num;
+      $('pageInput').value = String(num);
+
+      // 切换前立即清除旧错误状态
+      $('stageError').classList.remove('visible');
+
+      isRendering = true;
+      $('stageLoading').classList.remove('hidden');
+      $('canvasWrap').classList.remove('visible');
+
+      const img = $('pageImage');
+      // 释放上一个 blob URL，避免内存泄漏
+      if (img.src && img.src.startsWith('blob:')) {
+        try { URL.revokeObjectURL(img.src); } catch (e) {}
+      }
+      img.style.transform = 'scale(' + currentScale + ')';
+      img.style.transformOrigin = 'center top';
+
+      const src = current.pagesDir + '/page-' + String(num).padStart(2, '0') + '.jpg';
+      $('loadingProgress').textContent = '正在加载第 ' + num + ' 页…';
+
+      try {
+        const blobUrl = await loadImageBlob(src);
+        // 等待 img.onload 事件
+        await new Promise((resolve, reject) => {
+          const onLoad = () => { cleanup(); resolve(); };
+          const onError = () => { cleanup(); reject(new Error('img.onerror')); };
+          const cleanup = () => {
+            img.removeEventListener('load', onLoad);
+            img.removeEventListener('error', onError);
+          };
+          img.addEventListener('load', onLoad, { once: true });
+          img.addEventListener('error', onError, { once: true });
+          img.src = blobUrl;
+        });
+        $('canvasWrap').classList.add('visible');
+        $('stageLoading').classList.add('hidden');
+        $('stageError').classList.remove('visible');
+        updateNavState();
+      } catch (e) {
+        // 只有页面 ID 仍是用户当前查看的页码时才显示错误
+        if (pendingPageNum === null) {
+          showError('页面 ' + num + ' 加载失败，请检查网络后重试。');
+        }
+      } finally {
+        isRendering = false;
+        if (pendingPageNum !== null) {
+          const next = pendingPageNum;
+          pendingPageNum = null;
+          renderPage(next);
+        }
+      }
+    }
+
+    function updateNavState() {
+      const atFirst = currentPageNum <= 1;
+      const atLast = currentPageNum >= totalPages;
+      $('prevPageBtn').disabled = atFirst;
+      $('nextPageBtn').disabled = atLast;
+      $('prevPageSideBtn').disabled = atFirst;
+      $('nextPageSideBtn').disabled = atLast;
+    }
+
+    function showError(msg) {
+      $('stageLoading').classList.add('hidden');
+      $('errorMessage').textContent = msg;
+      $('stageError').classList.add('visible');
+    }
+
+    /* 翻页控件 */
+    $('prevPageBtn').addEventListener('click', () => renderPage(currentPageNum - 1));
+    $('nextPageBtn').addEventListener('click', () => renderPage(currentPageNum + 1));
+    $('prevPageSideBtn').addEventListener('click', () => renderPage(currentPageNum - 1));
+    $('nextPageSideBtn').addEventListener('click', () => renderPage(currentPageNum + 1));
+    $('pageInput').addEventListener('change', (e) => {
+      const v = parseInt(e.target.value, 10);
+      if (!isNaN(v)) renderPage(v);
+    });
+    $('pageInput').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); $('pageInput').blur(); }
+    });
+    $('zoomInBtn').addEventListener('click', () => {
+      if (currentScale < SCALE_MAX) { currentScale += SCALE_STEP; renderPage(currentPageNum); }
+    });
+    $('zoomOutBtn').addEventListener('click', () => {
+      if (currentScale > SCALE_MIN) { currentScale -= SCALE_STEP; renderPage(currentPageNum); }
+    });
+
+    /* 下载按钮 → 下载当前杂志 PDF 电子版 */
+    function setDownloadHref() {
+      const pdfHref = 'assets/magazine-' + currentKey + '-2026-07.pdf';
+      const pdfName = currentKey === 'chinabike'
+        ? '《中国电动自行车网》2026.07-08月.pdf'
+        : '《江苏省自行车》2026.07-08月.pdf';
+      const btns = [$('downloadBtn'), $('downloadBtnToolbar')];
+      btns.forEach((btn) => {
+        if (!btn) return;
+        btn.href = pdfHref;
+        btn.setAttribute('download', pdfName);
+      });
+    }
+    setDownloadHref();
+
+    /* 全屏 */
+    const viewerSection = $('viewerSection');
+    $('fullscreenBtn').addEventListener('click', () => {
+      viewerSection.classList.toggle('fullscreen');
+      const isFs = viewerSection.classList.contains('fullscreen');
+      $('fullscreenIcon').innerHTML = isFs
+        ? '<path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/>'
+        : '<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>';
+    });
+
+    /* 键盘导航 */
+    document.addEventListener('keydown', (e) => {
+      if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+      if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); renderPage(currentPageNum - 1); }
+      else if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); renderPage(currentPageNum + 1); }
+      else if (e.key === 'Home') { e.preventDefault(); renderPage(1); }
+      else if (e.key === 'End') { e.preventDefault(); renderPage(totalPages); }
+    });
+
+    /* 滚轮翻页（在阅读器区域） */
+    $('stage').addEventListener('wheel', (e) => {
+      if (Math.abs(e.deltaY) < 30) return;
+      e.preventDefault();
+      if (e.deltaY > 0) renderPage(currentPageNum + 1);
+      else renderPage(currentPageNum - 1);
+    }, { passive: false });
+
+    /* 启动阅读按钮 */
+    $('startReadingBtn').addEventListener('click', () => {
+      viewerSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+    /* 启动：渲染第一页 */
+    renderPage(1);
+  </script>
+</body>
+</html>
