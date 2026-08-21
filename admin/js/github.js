@@ -200,12 +200,34 @@ const GitHub = (() => {
     }
 
     /**
+     * 发布详情（detailRecords + titleOverrides + contextualBodies）
+     * 写到 src/data/details.js
+     */
+    async function publishDetails() {
+        const detailsData = window.Store.get('details');
+        const titleOverridesData = window.Store.get('titleOverrides');
+        const contextualBodiesData = window.Store.get('contextualBodies');
+        if (!detailsData) throw new Error('details 数据缺失');
+
+        const f = await getFileContent('src/data/details.js');
+        if (!f.content) throw new Error('找不到 src/data/details.js');
+
+        const replacements = { detailRecords: detailsData };
+        if (titleOverridesData) replacements.titleOverrides = titleOverridesData;
+        if (contextualBodiesData) replacements.contextualBodies = contextualBodiesData;
+        const newContent = buildJsContent(f.content, replacements);
+        return await updateFile('src/data/details.js', newContent,
+            `📋 Admin: 更新详情记录 (${new Date().toISOString().slice(0,10)})`);
+    }
+
+    /**
      * 一键发布 — 把所有本地编辑推到 GitHub
      */
     async function publishAll(opts = {}) {
         const results = [];
         const seq = [
             { name: 'news', run: publishNews, required: true },
+            { name: 'details', run: publishDetails, required: false },
             { name: 'site', run: publishSite, required: false },
             { name: 'navigation', run: publishNavigation, required: false },
             { name: 'footer', run: publishFooter, required: false },
@@ -215,8 +237,8 @@ const GitHub = (() => {
             if (opts[s.name] === false) continue;
             try {
                 UI.toast(`正在发布 ${s.name}…`, '');
-                await s.run();
-                results.push({ name: s.name, ok: true });
+                const r = await s.run();
+                results.push({ name: s.name, ok: true, sha: r.content && r.content.sha });
             } catch (e) {
                 console.error(`publish ${s.name} failed:`, e);
                 results.push({ name: s.name, ok: false, error: e.message });
@@ -229,7 +251,12 @@ const GitHub = (() => {
     return {
         getConfig, setConfig, clearConfig, isConfigured,
         api, getFileContent, updateFile, buildJsContent,
-        publishNews, publishPages, publishSite, publishNavigation, publishFooter,
+        publishNews, publishDetails, publishPages, publishSite, publishNavigation, publishFooter,
         publishAll
     };
 })();
+
+/* 暴露到 window 对象，让非模块化页面（如 dashboard.html）也能直接使用 GitHub.xxx */
+if (typeof window !== 'undefined') {
+    window.GitHub = GitHub;
+}
