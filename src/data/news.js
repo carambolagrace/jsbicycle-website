@@ -104,6 +104,40 @@ export const newsList = {
       type: '公示',
       title: '协会新任负责人任职前公示'
     }
+  ],
+  notice: [
+    {
+      id: 'leader',
+      date: '07.31',
+      iso: '2026.07.31',
+      category: '通知公告',
+      type: '公示',
+      title: '协会新任负责人任职前公示'
+    },
+    {
+      id: 'latest',
+      date: '07.22',
+      iso: '2024.07.22',
+      category: '通知公告',
+      type: '公示',
+      title: '符合电动自行车行业规范条件企业名单公示'
+    },
+    {
+      id: 'certification',
+      date: '12.23',
+      iso: '2025.12.23',
+      category: '通知公告',
+      type: '公告',
+      title: '国家认监委关于产品强制性认证标志试点改革事项的公告'
+    },
+    {
+      id: 'cases',
+      date: '09.27',
+      iso: '2024.09.27',
+      category: '通知公告',
+      type: '征集',
+      title: '关于征集行业品牌数智化典型案例的通知'
+    }
   ]
 };
 

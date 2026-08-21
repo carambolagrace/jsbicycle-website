@@ -72,20 +72,39 @@
     },
     {
       "label": "资讯动态",
-      "href": "./index.html#news",
-      "type": "hash",
+      "href": "./page.html?page=news",
+      "type": "page",
       "children": [
         {
-          "label": "行业动态",
+          "label": "协会动态",
           "href": "./page.html?page=news"
         },
         {
-          "label": "政策法规",
+          "label": "行业资讯",
+          "href": "./page.html?page=news"
+        },
+        {
+          "label": "政策动态",
           "href": "./page.html?page=standards"
         },
         {
           "label": "通知公告",
           "href": "./page.html?page=services"
+        }
+      ]
+    },
+    {
+      "label": "行业杂志",
+      "href": "./page.html?page=magazines",
+      "type": "page",
+      "children": [
+        {
+          "label": "《江苏省自行车》",
+          "href": "./detail.html?type=magazine&id=jsbicycle"
+        },
+        {
+          "label": "《中国电动自行车网》",
+          "href": "./detail.html?type=magazine&id=chinabike"
         }
       ]
     }

@@ -77,8 +77,9 @@ export function renderLayout() {
           <div class="nav-item has-children">
             <a class="nav-link" href="./page.html?page=news">资讯动态<span class="chevron">▾</span></a>
             <div class="nav-sub">
-              <a href="./page.html?page=news">行业动态</a>
-              <a href="./page.html?page=standards">政策法规</a>
+              <a href="./page.html?page=news">协会动态</a>
+              <a href="./page.html?page=news">行业资讯</a>
+              <a href="./page.html?page=standards">政策动态</a>
               <a href="./page.html?page=services">通知公告</a>
             </div>
           </div>

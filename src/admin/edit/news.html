@@ -115,6 +115,7 @@
                     <option value="association">协会动态</option>
                     <option value="industry">行业资讯</option>
                     <option value="policy">政策动态</option>
+                    <option value="notice">通知公告</option>
                   </select>
                 </div>
               </div>
@@ -192,7 +193,7 @@
   <script>
     AUTH.guard();
 
-    const CAT_LABEL = { association: '协会动态', industry: '行业资讯', policy: '政策动态' };
+    const CAT_LABEL = { association: '协会动态', industry: '行业资讯', policy: '政策动态', notice: '通知公告' };
     let currentCat = 'association';
 
     async function init() {

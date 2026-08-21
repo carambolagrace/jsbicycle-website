@@ -5,6 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>行业杂志 - 后台管理系统</title>
   <link rel="stylesheet" href="../css/admin.css">
+  <style>
+    .masthead-fs { margin: 18px 0 6px; padding: 16px 18px 6px; border: 1px dashed #b6c4d3; border-radius: 8px; background: #fafcfe; }
+    .masthead-fs legend { padding: 0 8px; font-size: 13px; font-weight: 700; color: #1f4d80; }
+    .masthead-fs .field { margin-bottom: 12px; }
+    .masthead-fs textarea { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 13px; line-height: 1.6; }
+  </style>
 </head>
 <body>
   <div class="app-shell">
@@ -80,6 +86,21 @@
                   <option value="archive">往期归档</option>
                 </select>
               </div>
+
+              <fieldset class="masthead-fs">
+                <legend>版权页（刊头）信息</legend>
+                <div class="field-row">
+                  <div class="field"><label>本期期号</label><input type="text" id="mh_issueNo" placeholder="2026 年第 4 期 · 总第 621 期"></div>
+                  <div class="field"><label>刊头题字</label><input type="text" id="mh_calligrapher" placeholder="陆金龙"></div>
+                </div>
+                <div class="field"><label>主办单位（每行一个）</label><textarea id="mh_organizers" rows="3" placeholder="江苏省自行车电动车协会&#10;中国自行车协会助力车专业委员会&#10;江苏省自行车有限公司"></textarea></div>
+                <div class="field"><label>协办单位（每行一个）</label><textarea id="mh_coOrganizers" rows="2" placeholder="充换电专业委员会&#10;共享电单车专业委员会"></textarea></div>
+                <div class="field"><label>出版单位（每行一个）</label><textarea id="mh_publishers" rows="3"></textarea></div>
+                <div class="field"><label>编辑部（格式：职务|姓名1,姓名2,姓名3）</label><textarea id="mh_editorialBoard" rows="6" placeholder="主&emsp;编|陆金龙&#10;责任副主编|宋金芸,陆子禹&#10;执行副主编|张&emsp;晶,严&emsp;芳"></textarea></div>
+                <div class="field"><label>编委会（格式：职务|姓名|公司职务）</label><textarea id="mh_committee" rows="12" placeholder="主&emsp;任|陆金龙|江苏省自行车电动车协会名誉理事长、江苏省自行车有限公司董事长&#10;主&emsp;任|张崇舜|江苏省自行车电动车协会理事长&#10;副主任|董经贵|江苏新日电动车股份有限公司董事长"></textarea></div>
+                <div class="field"><label>声明</label><textarea id="mh_statement" rows="3"></textarea></div>
+              </fieldset>
+
               <div class="btn-group">
                 <button type="submit" class="btn btn-primary">保存到列表</button>
                 <button type="button" class="btn" onclick="resetForm()">清空表单</button>
@@ -130,6 +151,39 @@
         `).join('');
     }
 
+    function collectMasthead() {
+        const linesToArray = (txt) => (txt || '').split('\n').map(s => s.trim()).filter(Boolean);
+        const linesToObjs = (txt) => linesToArray(txt).map(line => {
+            const parts = line.split('|');
+            return { role: (parts[0] || '').trim(), name: (parts[1] || '').trim(), company: (parts[2] || '').trim() };
+        }).filter(o => o.role && o.name);
+        const editorialLines = linesToArray(document.getElementById('mh_editorialBoard').value);
+        const editorialBoard = editorialLines.map(line => {
+            const parts = line.split('|');
+            return { role: (parts[0] || '').trim(), names: (parts[1] || '').split(',').map(s => s.trim()).filter(Boolean) };
+        }).filter(o => o.role && o.names.length);
+        return {
+            issueNo: document.getElementById('mh_issueNo').value.trim(),
+            calligrapher: document.getElementById('mh_calligrapher').value.trim(),
+            organizers: linesToArray(document.getElementById('mh_organizers').value),
+            coOrganizers: linesToArray(document.getElementById('mh_coOrganizers').value),
+            publishers: linesToArray(document.getElementById('mh_publishers').value),
+            editorialBoard,
+            committee: linesToObjs(document.getElementById('mh_committee').value),
+            statement: document.getElementById('mh_statement').value.trim()
+        };
+    }
+    function fillMasthead(m) {
+        m = m || {};
+        document.getElementById('mh_issueNo').value = m.issueNo || '';
+        document.getElementById('mh_calligrapher').value = m.calligrapher || '';
+        document.getElementById('mh_organizers').value = (m.organizers || []).join('\n');
+        document.getElementById('mh_coOrganizers').value = (m.coOrganizers || []).join('\n');
+        document.getElementById('mh_publishers').value = (m.publishers || []).join('\n');
+        document.getElementById('mh_editorialBoard').value = (m.editorialBoard || []).map(e => (e.role || '') + '|' + (e.names || []).join(',')).join('\n');
+        document.getElementById('mh_committee').value = (m.committee || []).map(c => (c.role || '') + '|' + (c.name || '') + '|' + (c.company || '')).join('\n');
+        document.getElementById('mh_statement').value = m.statement || '';
+    }
     function collect() {
         const g = id => document.getElementById(id).value.trim();
         return {
@@ -137,7 +191,8 @@
             publisher: g('publisher'), period: g('period'),
             issue: g('issue'), publishedAt: g('publishedAt'),
             cover: g('cover'), pdf: g('pdf'),
-            summary: g('summary'), status: g('status')
+            summary: g('summary'), status: g('status'),
+            masthead: collectMasthead()
         };
     }
     function fill(item) {
@@ -146,6 +201,7 @@
             const el = document.getElementById(k);
             el.value = item[k] || '';
         });
+        fillMasthead(item.masthead);
         document.getElementById('formTitle').textContent = '编辑期刊：' + (item.title || '');
     }
     function resetForm() {
