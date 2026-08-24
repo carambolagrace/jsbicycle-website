@@ -221,6 +221,85 @@ const GitHub = (() => {
     }
 
     /**
+     * 通用工具：从 Store 取数据，生成独立的 data.js 文件内容
+     * — 用于首次创建 / 全量覆盖场景
+     */
+    function buildStandaloneJs(headerComment, exportName, data) {
+        const json = JSON.stringify(data, null, 2);
+        return `/**\n * ${headerComment}\n */\nexport const ${exportName} = ${json};\n`;
+    }
+
+    async function publishStandards() {
+        const data = window.Store.get('standards');
+        if (!data) throw new Error('standards 数据缺失');
+        const content = buildStandaloneJs(
+            '政策标准数据 — 通过后台"政策标准"编辑器一键发布更新',
+            'standardsList', data);
+        return await updateFile('src/data/standards.js', content,
+            `📋 Admin: 更新政策标准 (${new Date().toISOString().slice(0,10)})`);
+    }
+
+    async function publishEvents() {
+        const data = window.Store.get('events');
+        if (!data) throw new Error('events 数据缺失');
+        const content = buildStandaloneJs(
+            '展会活动数据 — 通过后台"展会活动"编辑器一键发布更新',
+            'eventsList', data);
+        return await updateFile('src/data/events.js', content,
+            `🗓 Admin: 更新展会活动 (${new Date().toISOString().slice(0,10)})`);
+    }
+
+    async function publishMagazines() {
+        const data = window.Store.get('magazines');
+        if (!data) throw new Error('magazines 数据缺失');
+        const content = buildStandaloneJs(
+            '行业杂志数据 — 通过后台"行业杂志"编辑器一键发布更新',
+            'magazinesList', data);
+        return await updateFile('src/data/magazines.js', content,
+            `📖 Admin: 更新行业杂志 (${new Date().toISOString().slice(0,10)})`);
+    }
+
+    async function publishBranches() {
+        const data = window.Store.get('branches');
+        if (!data) throw new Error('branches 数据缺失');
+        const content = buildStandaloneJs(
+            '分支机构数据 — 通过后台"分支机构"编辑器一键发布更新',
+            'branchesData', data);
+        return await updateFile('src/data/branches.js', content,
+            `🏛 Admin: 更新分支机构 (${new Date().toISOString().slice(0,10)})`);
+    }
+
+    async function publishWuxiOffice() {
+        const data = window.Store.get('wuxiOffice');
+        if (!data) throw new Error('wuxiOffice 数据缺失');
+        const content = buildStandaloneJs(
+            '无锡办公室数据 — 通过后台"无锡办公室"编辑器一键发布更新',
+            'wuxiOfficeData', data);
+        return await updateFile('src/data/wuxiOffice.js', content,
+            `🏢 Admin: 更新无锡办公室 (${new Date().toISOString().slice(0,10)})`);
+    }
+
+    async function publishDownloads() {
+        const data = window.Store.get('downloads');
+        if (!data) throw new Error('downloads 数据缺失');
+        const content = buildStandaloneJs(
+            '下载资料数据 — 通过后台"下载资料"编辑器一键发布更新',
+            'downloadsList', data);
+        return await updateFile('src/data/downloads.js', content,
+            `📁 Admin: 更新下载资料 (${new Date().toISOString().slice(0,10)})`);
+    }
+
+    async function publishHomepage() {
+        const data = window.Store.get('homepage');
+        if (!data) throw new Error('homepage 数据缺失');
+        const content = buildStandaloneJs(
+            '首页内容数据 — 通过后台"首页内容"编辑器一键发布更新',
+            'homepageData', data);
+        return await updateFile('src/data/homepage.js', content,
+            `🏠 Admin: 更新首页内容 (${new Date().toISOString().slice(0,10)})`);
+    }
+
+    /**
      * 一键发布 — 把所有本地编辑推到 GitHub
      */
     async function publishAll(opts = {}) {
@@ -228,6 +307,13 @@ const GitHub = (() => {
         const seq = [
             { name: 'news', run: publishNews, required: true },
             { name: 'details', run: publishDetails, required: false },
+            { name: 'standards', run: publishStandards, required: false },
+            { name: 'events', run: publishEvents, required: false },
+            { name: 'magazines', run: publishMagazines, required: false },
+            { name: 'branches', run: publishBranches, required: false },
+            { name: 'wuxiOffice', run: publishWuxiOffice, required: false },
+            { name: 'downloads', run: publishDownloads, required: false },
+            { name: 'homepage', run: publishHomepage, required: false },
             { name: 'site', run: publishSite, required: false },
             { name: 'navigation', run: publishNavigation, required: false },
             { name: 'footer', run: publishFooter, required: false },
@@ -250,8 +336,10 @@ const GitHub = (() => {
 
     return {
         getConfig, setConfig, clearConfig, isConfigured,
-        api, getFileContent, updateFile, buildJsContent,
+        api, getFileContent, updateFile, buildJsContent, buildStandaloneJs,
         publishNews, publishDetails, publishPages, publishSite, publishNavigation, publishFooter,
+        publishStandards, publishEvents, publishMagazines, publishBranches,
+        publishWuxiOffice, publishDownloads, publishHomepage,
         publishAll
     };
 })();

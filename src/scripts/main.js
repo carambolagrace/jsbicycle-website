@@ -1,12 +1,75 @@
 /**
  * 首页脚本 — Hero 轮播 / 新闻分类切换 / 锚点 toast
- * 依赖 utils/dom.js 中的通用工具
+ * 首页内容（重要声明、Hero 文案、快捷链接）从 homepageData 读取，后台"首页内容"编辑器一键发布可更新
  */
 import { qs, qsa, renderLayout, initNavigation, initSearch, showToast } from '../utils/dom.js';
+import { homepageData } from '../data/homepage.js';
 
 renderLayout();
 initNavigation();
 initSearch();
+
+/* ---------- 从 homepageData 填充关键字段 ---------- */
+const hero = homepageData?.hero || {};
+const focus = homepageData?.focus || {};
+const quickLinks = homepageData?.quickLinks || [];
+
+const eyebrowText = qs('#hero-eyebrow-text');
+if (eyebrowText && hero.eyebrow) eyebrowText.textContent = hero.eyebrow;
+
+const heroTitleEl = qs('#hero-title');
+if (heroTitleEl && hero.title) heroTitleEl.innerHTML = hero.title;
+
+const heroDescEl = qs('#hero-description');
+if (heroDescEl && hero.description) heroDescEl.textContent = hero.description;
+
+const focusTag = qs('#hero-focus-tag');
+if (focusTag && focus.tag) focusTag.textContent = focus.tag;
+
+const focusTitle = qs('#hero-focus-title');
+if (focusTitle && focus.title) focusTitle.textContent = focus.title;
+
+const focusBody = qs('#hero-focus-body');
+if (focusBody && focus.body) focusBody.textContent = focus.body;
+
+const focusLink = qs('#hero-focus-link');
+if (focusLink) {
+  if (focus.url) focusLink.setAttribute('href', focus.url);
+  if (focus.linkText) {
+    focusLink.innerHTML = `${focus.linkText} <span>↗</span>`;
+  }
+}
+
+/* ---------- 快捷链接动态渲染 ---------- */
+const quickLinksSection = qs('#quick-links-section');
+const ICONS = {
+  member: '<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.2"></circle><path d="M5.5 19c.7-3.1 2.9-4.7 6.5-4.7s5.8 1.6 6.5 4.7"></path></svg>',
+  standard: '<svg viewBox="0 0 24 24"><path d="M5 4.5h14v15H5z"></path><path d="M8.5 8h7M8.5 12h7M8.5 16h4"></path></svg>',
+  event: '<svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="14" rx="1.5"></rect><path d="M8 3.5v4M16 3.5v4M4 10h16"></path></svg>',
+  download: '<svg viewBox="0 0 24 24"><path d="M12 4v11M8.5 11.5 12 15l3.5-3.5M5 19.5h14"></path></svg>',
+  contact: '<svg viewBox="0 0 24 24"><path d="M5.5 5.5h13v10h-7l-4 3v-3h-2z"></path><path d="M8.5 9.5h7M8.5 12.5h4"></path></svg>'
+};
+const ICON_KEY_BY_HINT = (link) => {
+  const t = `${link.title || ''} ${link.sub || ''}`;
+  if (/会员|入会/.test(t)) return 'member';
+  if (/标准|法规/.test(t)) return 'standard';
+  if (/展会|活动|报名|会议/.test(t)) return 'event';
+  if (/下载|资料|文件/.test(t)) return 'download';
+  if (/联系|电话|邮箱|地址/.test(t)) return 'contact';
+  return 'member';
+};
+const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+if (quickLinksSection && quickLinks.length) {
+  quickLinksSection.innerHTML = quickLinks.map((l) => {
+    const key = ICON_KEY_BY_HINT(l);
+    return `
+      <a class="quick-link" href="${esc(l.href || '#')}">
+        <span class="quick-icon icon-${key}">${ICONS[key]}</span>
+        <span><strong>${esc(l.title)}</strong><small>${esc(l.sub || '')}</small></span><b>↗</b>
+      </a>
+    `;
+  }).join('');
+}
 
 /* ---------- Hero 焦点图轮播 ---------- */
 const slides = [
