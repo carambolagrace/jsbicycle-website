@@ -1,0 +1,1 @@
+trigger CF rebuild at 2026-08-26T04:11:51.418Z — fix standards.js 含 3 条带 PDF
