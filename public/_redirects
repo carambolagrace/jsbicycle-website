@@ -1,0 +1,27 @@
+﻿# Cloudflare Pages 路由配置
+# 关键：保护 /admin/data/ 静态文件路径不被 SPA fallback 到 index.html
+/admin/data/* /admin/data/:s 200
+
+# 友好 URL（无 .html 时回退）
+/page /page.html 200
+/detail /detail.html 200
+
+# 后台管理 — 友好 URL
+/admin /admin/index.html 200
+/admin/index /admin/index.html 200
+/admin/dashboard /admin/dashboard.html 200
+/admin/github-config /admin/github-config.html 200
+/admin/edit/news /admin/edit/news.html 200
+/admin/edit/standards /admin/edit/standards.html 200
+/admin/edit/events /admin/edit/events.html 200
+/admin/edit/magazines /admin/edit/magazines.html 200
+/admin/edit/branches /admin/edit/branches.html 200
+/admin/edit/wuxi-office /admin/edit/wuxi-office.html 200
+/admin/edit/downloads /admin/edit/downloads.html 200
+/admin/edit/homepage /admin/edit/homepage.html 200
+/admin/edit/navigation /admin/edit/navigation.html 200
+/admin/edit/footer /admin/edit/footer.html 200
+/admin/edit/pages /admin/edit/pages.html 200
+/admin/edit/details /admin/edit/details.html 200
+
+# Force rebuild trigger (2026-08-25 13:15)
