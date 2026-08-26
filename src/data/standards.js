@@ -3,6 +3,16 @@
  */
 export const standardsList = [
   {
+    "id": "Safety requirements for electric bicycles electrical",
+    "type": "国家标准",
+    "title": "GB 42295-2022 《电动自行车电气安全要求》",
+    "publishedAt": "2022-12-29",
+    "status": "2024-01-01实施",
+    "summary": "",
+    "fileUrl": "",
+    "externalUrl": "https://openstd.samr.gov.cn/bzgk/std/showGb?type=online&hcno=591FC179B14496C8827A3C2997624691&request_locale=zh"
+  },
+  {
     "id": "battery",
     "type": "国家标准",
     "title": "GB 43854—2024《电动自行车用锂离子蓄电池安全技术规范》",
