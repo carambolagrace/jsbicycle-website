@@ -62,7 +62,14 @@
                 <div class="field"><label>状态</label><input type="text" id="status" placeholder="现行有效 / 征求意见阶段"></div>
               </div>
               <div class="field"><label>简介 / 摘要</label><textarea id="summary" rows="3"></textarea></div>
-              <div class="field"><label>内部文件 URL</label><input type="text" id="fileUrl" placeholder="./assets/standard-battery.pdf"></div>
+              <div class="field"><label>内部文件 URL</label>
+                              <div class="field-row" style="gap:8px;align-items:center">
+                                <input type="text" id="fileUrl" placeholder="./assets/standard-battery.pdf" style="flex:1">
+                                <button type="button" class="btn" id="uploadPdfBtn">📤 上传 PDF</button>
+                                <input type="file" id="pdfFileInput" accept="application/pdf" style="display:none">
+                              </div>
+                              <small id="pdfStatus" style="color:#6c7a90"></small>
+                            </div>
               <div class="field"><label>外部链接 URL</label><input type="text" id="externalUrl" placeholder="https://..."></div>
               <div class="btn-group">
                 <button type="submit" class="btn btn-primary">保存到列表</button>
@@ -84,10 +91,11 @@
   <script src="../js/auth.js"></script>
   <script src="../js/ui.js"></script>
   <script src="../js/store.js"></script>
+  <script src="../js/github.js"></script>
   <script>
     AUTH.guard();
     let data = [];
-    async function init() { await Store.loadAll(); data = Store.get('standards') || []; render(); }
+    async function init() { await Store.loadAll(); data = Store.get('standards') || []; render(); initPdfUpload(); }
     function render() {
         const list = document.getElementById('list');
         if (!data.length) { list.innerHTML = '<div class="empty">暂无文件</div>'; return; }
@@ -145,6 +153,50 @@
         render(); resetForm();
         UI.toast('已恢复默认数据', 'success');
     }
+
+    /* ========== PDF 上传 ========== */
+    function initPdfUpload() {
+      const btn = document.getElementById('uploadPdfBtn');
+      const input = document.getElementById('pdfFileInput');
+      const statusEl = document.getElementById('pdfStatus');
+      const fileUrlEl = document.getElementById('fileUrl');
+      if (!btn || !input) return;
+      btn.addEventListener('click', () => input.click());
+      input.addEventListener('change', async (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        if (!GitHub.isConfigured()) {
+          UI.toast('请先在“⚙ GitHub 自动部署”配置仓库信息', 'error');
+          window.location.href = '../github-config.html';
+          return;
+        }
+        const currentId = document.getElementById('id').value.trim() || file.name.replace(/\.pdf$/i, '');
+        const safeId = currentId.replace(/[^\w一-龥\-]/g, '_');
+        const fileName = `standard-${safeId}.pdf`;
+        const targetPath = `public/assets/${fileName}`;
+        statusEl.textContent = `上传中 ${file.name}（${(file.size/1024).toFixed(0)} KB）…`;
+        statusEl.style.color = '#2c7ec5';
+        btn.disabled = true;
+        try {
+          const res = await GitHub.uploadAsset(file, targetPath);
+          const url = `./assets/${fileName}`;
+          fileUrlEl.value = url;
+          statusEl.innerHTML = `✓ 上传成功：<a href="${url}" target="_blank" rel="noopener">预览 PDF</a> · 下次“一键发布”后网站可见`;
+          statusEl.style.color = '#2a8c4a';
+          UI.toast('PDF 已上传到 GitHub', 'success');
+          return res;
+        } catch (err) {
+          statusEl.textContent = `✗ 上传失败：${err.message}`;
+          statusEl.style.color = '#d33';
+          UI.toast('上传失败：' + err.message, 'error');
+          throw err;
+        } finally {
+          btn.disabled = false;
+          input.value = '';
+        }
+      });
+    }
+
     init();
   </script>
 </body>
