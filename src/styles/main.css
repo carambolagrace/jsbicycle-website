@@ -36,8 +36,8 @@ img { display: block; max-width: 100%; }
 .header-inner { display: flex; min-height: 86px; align-items: center; gap: 38px; }
 .brand { display: flex; align-items: center; flex: 0 0 auto; gap: 12px; }
 .brand img { width: 49px; height: 49px; object-fit: cover; border-radius: 50%; }
-.brand-text { display: flex; flex-direction: column; line-height: 1.15; }
-.brand-text strong { color: var(--navy); font-size: 17px; letter-spacing: .08em; font-weight: 700; }
+.brand-text { display: flex; flex-direction: column; line-height: 1.15; flex-shrink: 0; min-width: 0; }
+.brand-text strong { color: var(--navy); font-size: 17px; letter-spacing: .08em; font-weight: 700; white-space: nowrap; }
 .brand-text small { margin-top: 5px; color: var(--muted); font-size: 8px; letter-spacing: .07em; white-space: nowrap; }
 .main-nav { display: flex; flex: 1; justify-content: flex-end; align-items: center; gap: clamp(20px, 2.2vw, 34px); height: 100%; }
 .nav-item { position: relative; display: flex; align-items: center; height: 100%; }
@@ -78,8 +78,9 @@ img { display: block; max-width: 100%; }
 .hero-inner { position: relative; min-height: 564px; display: flex; align-items: center; justify-content: space-between; gap: 60px; padding-top: 36px; padding-bottom: 44px; }
 .hero-copy { max-width: 640px; }
 .eyebrow, .section-kicker { margin: 0 0 16px; color: #75bda6; font-size: 11px; font-weight: 700; letter-spacing: .22em; }
-.eyebrow { display: flex; align-items: center; gap: 10px; color: #a5d6c7; }
-.eyebrow span { width: 28px; height: 1px; background: #75bda6; }
+.eyebrow { display: flex; align-items: center; gap: 10px; color: #a5d6c7; white-space: nowrap; flex-wrap: nowrap; }
+.eyebrow #hero-eyebrow-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.eyebrow .eyebrow-line { width: 28px; height: 1px; background: #75bda6; flex-shrink: 0; }
 .hero h1 { margin: 0; color: var(--white); font-size: clamp(40px, 5.2vw, 70px); line-height: 1.18; font-weight: 500; letter-spacing: -.035em; }
 .hero h1 em, .membership-copy h2 em, .about-intro h2 em { color: #76c8aa; font-style: normal; }
 .hero-description { max-width: 505px; margin: 26px 0 33px; color: #cbd8e4; font-size: 16px; line-height: 1.9; }
