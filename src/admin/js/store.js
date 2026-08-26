@@ -147,3 +147,6 @@ const Store = (() => {
         exportKey, exportAll, importJson
     };
 })();
+
+// 挂载到 window，供其他脚本访问（修正 window.Store undefined bug）
+window.Store = Store;
