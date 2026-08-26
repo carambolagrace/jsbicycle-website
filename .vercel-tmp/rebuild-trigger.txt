@@ -1,3 +1,4 @@
 Force rebuild at 2026-08-25T15:18:11.923Z (after reset to 8/24 ad821750a34d)
 
 2026-08-25T16:24:46.274Z - reset to v1.0.0 + force rebuild
+2026-08-26T02:35:46.746Z - PDF upload feature restored
