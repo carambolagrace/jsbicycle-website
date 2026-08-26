@@ -3,16 +3,6 @@
  */
 export const standardsList = [
   {
-    "id": "gb17761-2024",
-    "type": "国家标准",
-    "title": "GB 17761—2024《电动自行车安全技术规范》",
-    "publishedAt": "2024-12-31",
-    "status": "2025-09-01 实施",
-    "summary": "本标准规定了电动自行车的整车安全、机械安全、电气安全、防火阻燃、阻燃材料使用、塑料件占比与防火阻燃等级等关键要求。",
-    "fileUrl": "./assets/standard-gb17761.pdf",
-    "externalUrl": ""
-  },
-  {
     "id": "battery",
     "type": "国家标准",
     "title": "GB 43854—2024《电动自行车用锂离子蓄电池安全技术规范》",
