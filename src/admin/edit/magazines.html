@@ -110,6 +110,7 @@
         </div>
 
         <div class="btn-group mt-4">
+          <button class="btn btn-publish-magazines" style="background:#0a8a4a;color:#fff;font-weight:600" onclick="publishModule({key:'magazines', label:'行业杂志', saveFn:save})">🚀 发布到网站（仅本模块）</button>
           <button class="btn btn-primary" onclick="saveAll()">保存所有修改到本地</button>
           <button class="btn" onclick="Store.exportKey('magazines')">导出 JSON</button>
           <button class="btn" onclick="resetData()">恢复默认</button>
@@ -122,6 +123,7 @@
   <script src="../js/ui.js"></script>
   <script src="../js/store.js"></script>
   <script src="../js/github.js"></script>
+  <script src="../js/publish-helper.js"></script>
   <script src="../js/pdf-helper.js"></script>
   <script>
     AUTH.guard();
