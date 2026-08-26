@@ -9,8 +9,8 @@ export const standardsList = [
     "publishedAt": "2024-05-14",
     "status": "现行有效",
     "summary": "本标准规定了电动自行车用锂离子蓄电池的安全技术规范，包括电气安全、机械安全、环境适应性和试验方法等。",
-    "fileUrl": "",
-    "externalUrl": "https://openstd.samr.gov.cn/bzgk/std/newGbInfo?hcno=E14253B5634B9F3E9D243E27E1060A0C"
+    "fileUrl": "./assets/standard-battery.pdf",
+    "externalUrl": ""
   },
   {
     "id": "certification",
@@ -24,12 +24,12 @@ export const standardsList = [
   },
   {
     "id": "charging",
-    "type": "团体标准",
-    "title": "电动自行车集中充换电设施安全管理规范",
-    "publishedAt": "",
-    "status": "征求意见阶段",
-    "summary": "本团体标准由江苏省自行车电动车协会牵头制定，规范电动自行车集中充换电设施的规划、建设、运营与管理。",
-    "fileUrl": "./assets/standard-charging.pdf",
-    "externalUrl": ""
+    "type": "国家标准",
+    "title": "GB 17761-2024 《电动自行车安全技术规范》",
+    "publishedAt": "2024-12-31",
+    "status": "2025-09-01实施",
+    "summary": "",
+    "fileUrl": "",
+    "externalUrl": "https://openstd.samr.gov.cn/bzgk/std/newGbInfo?hcno=32E5D633E04B67FB241D100CA2A4A41D"
   }
 ];
