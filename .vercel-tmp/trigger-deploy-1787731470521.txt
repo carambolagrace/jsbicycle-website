@@ -1,0 +1,3 @@
+Force Cloudflare rebuild at 2026-08-26T08:04:30.521Z
+
+V1.4.0 with admin fix + _redirects 301 redirect
