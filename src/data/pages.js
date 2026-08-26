@@ -85,12 +85,12 @@ export const pageTemplates = {
       </div>`
   },
   news: {
-    title: '新闻动态',
+    title: '资讯动态',
     kicker: 'NEWS CENTER',
     mark: '02',
     description: '及时发布协会工作、公众号一线快讯、行业资讯、政策动态与重要通知。',
     content: `
-      <div class="filter-bar"><div class="filter-tabs"><button class="filter-chip active" data-filter="all">全部</button><button class="filter-chip" data-filter="association">协会动态</button><button class="filter-chip" data-filter="industry">行业资讯</button><button class="filter-chip" data-filter="policy">政策动态</button><button class="filter-chip" data-filter="notice">通知公告</button></div><span>共 16 条内容</span></div>
+      <div class="filter-bar"><div class="filter-tabs"><button class="filter-chip active" data-filter="all">全部</button><button class="filter-chip" data-filter="association">协会动态</button><button class="filter-chip" data-filter="industry">行业资讯</button><button class="filter-chip" data-filter="ceb-nanjing">CEB南京展</button><button class="filter-chip" data-filter="ceb-wuxi">CEB无锡展</button><button class="filter-chip" data-filter="policy">政策动态</button><button class="filter-chip" data-filter="notice">通知公告</button></div><span>共 16 条内容</span></div>
       <div class="news-featured">
         <span class="news-featured-badge">置顶推荐</span>
         <a class="news-featured-card" href="./detail.html?type=news&id=pa-running">

@@ -50,6 +50,28 @@ img { display: block; max-width: 100%; }
 .nav-item.has-children:hover .nav-sub, .nav-item.has-children:focus-within .nav-sub { opacity: 1; visibility: visible; pointer-events: auto; transform: translateX(-50%) translateY(0); }
 .nav-sub a { display: block; padding: 10px 14px; border-radius: 4px; color: #526274; font-size: 13px; letter-spacing: .02em; white-space: nowrap; transition: background .18s ease, color .18s ease; }
 .nav-sub a:hover { color: var(--navy); background: var(--paper); }
+
+/* ---------- 嵌套子菜单：会展资讯 → CEB南京展 / CEB无锡展 ---------- */
+.nav-sub .nav-item.has-children.nav-sub-parent { position: relative; }
+.nav-sub .nav-item.has-children.nav-sub-parent > .nav-link.nav-sub-link {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px; border-radius: 4px; color: #526274; font-size: 13px; letter-spacing: .02em; white-space: nowrap;
+  transition: background .18s ease, color .18s ease;
+}
+.nav-sub .nav-item.has-children.nav-sub-parent > .nav-link.nav-sub-link::after { display: none; }
+.nav-sub .nav-item.has-children.nav-sub-parent > .nav-link.nav-sub-link .chevron { font-size: 14px; color: #8c9baa; }
+.nav-sub .nav-item.has-children.nav-sub-parent > .nav-link.nav-sub-link:hover { color: var(--navy); background: var(--paper); }
+.nav-sub .nav-item.has-children.nav-sub-parent .nav-sub.nav-sub-nested {
+  position: absolute; top: 0; left: 100%; min-width: 170px;
+  transform: translateX(8px);
+  opacity: 0; visibility: hidden; pointer-events: none;
+  transition: opacity .22s var(--ease), transform .22s var(--ease), visibility .22s;
+  z-index: 41;
+}
+.nav-sub .nav-item.has-children.nav-sub-parent:hover > .nav-sub.nav-sub-nested,
+.nav-sub .nav-item.has-children.nav-sub-parent:focus-within > .nav-sub.nav-sub-nested {
+  opacity: 1; visibility: visible; pointer-events: auto; transform: translateX(0);
+}
 .chevron { margin: -3px 0 0 6px; color: #8c9baa; font-size: 16px; }
 .search-button { width: 38px; height: 38px; display: grid; place-items: center; flex: 0 0 auto; border: 1px solid var(--line); border-radius: 50%; background: transparent; color: var(--navy); transition: all .25s ease; }
 .search-button:hover { border-color: var(--navy); color: var(--white); background: var(--navy); }

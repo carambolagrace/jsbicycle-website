@@ -39,36 +39,79 @@ export const newsList = {
   ],
   industry: [
     {
-      id: 'pa-equipment',
-      date: '10.15',
-      iso: '2026.10.15',
-      category: '行业资讯',
-      type: '公众号文章',
-      title: '聚力装备升级，智领产业未来——2026南京展5号馆专属智造装备展区持续报名中'
-    },
-    {
-      id: 'pa-foreign',
-      date: '10.08',
-      iso: '2026.10.08',
-      category: '行业资讯',
-      type: '公众号文章',
-      title: '打破内贸天花板！2026南京电动车展重磅打造外贸特色"展中展"'
-    },
-    {
-      id: 'pa-buyers',
-      date: '09.26',
-      iso: '2026.09.26',
-      category: '行业资讯',
-      type: '公众号文章',
-      title: '聚焦外贸专属展区，链接全球采购资源｜2026南京电动车展国际买家邀约工作有序推进'
-    },
-    {
       id: 'pa-rider',
       date: '06.23',
       iso: '2026.06.23',
       category: '行业资讯',
       type: '公众号文章',
       title: '开放！骑手可以骑"电摩"送外卖啦！'
+    }
+  ],
+  // 展会资讯：CEB南京展 与 CEB无锡展 相关资讯
+  // data-type 会赋值为 exhibition 字段（ceb-nanjing / ceb-wuxi），供筛选 chip 使用
+  exhibition: [
+    {
+      id: 'pa-equipment',
+      date: '10.15',
+      iso: '2026.10.15',
+      category: 'CEB南京展',
+      type: '公众号文章',
+      exhibition: 'ceb-nanjing',
+      title: '聚力装备升级，智领产业未来——2026南京展5号馆专属智造装备展区持续报名中'
+    },
+    {
+      id: 'pa-foreign',
+      date: '10.08',
+      iso: '2026.10.08',
+      category: 'CEB南京展',
+      type: '公众号文章',
+      exhibition: 'ceb-nanjing',
+      title: '打破内贸天花板！2026南京电动车展重磅打造外贸特色"展中展"'
+    },
+    {
+      id: 'pa-buyers',
+      date: '09.26',
+      iso: '2026.09.26',
+      category: 'CEB南京展',
+      type: '公众号文章',
+      exhibition: 'ceb-nanjing',
+      title: '聚焦外贸专属展区，链接全球采购资源｜2026南京电动车展国际买家邀约工作有序推进'
+    },
+    {
+      id: 'ceb-nanjing-43',
+      date: '09.18',
+      iso: '2026.09.18',
+      category: 'CEB南京展',
+      type: '展会动态',
+      exhibition: 'ceb-nanjing',
+      title: '第43届中国江苏国际新能源电动车及零部件交易会（CEB 南京展）10月22日开幕'
+    },
+    {
+      id: 'ceb-wuxi-19-recap',
+      date: '05.12',
+      iso: '2026.05.12',
+      category: 'CEB无锡展',
+      type: '展会回顾',
+      exhibition: 'ceb-wuxi',
+      title: '第19届无锡国际电动车展览会（CEB 无锡展）圆满落幕'
+    },
+    {
+      id: 'ceb-wuxi-19-stats',
+      date: '05.11',
+      iso: '2026.05.11',
+      category: 'CEB无锡展',
+      type: '展会数据',
+      exhibition: 'ceb-wuxi',
+      title: '第19届CEB无锡展数据回顾｜264家企业、800+展位、20,000㎡展会规模创新高'
+    },
+    {
+      id: 'ceb-wuxi-20-preview',
+      date: '04.26',
+      iso: '2026.04.26',
+      category: 'CEB无锡展',
+      type: '展会预告',
+      exhibition: 'ceb-wuxi',
+      title: '第20届CEB无锡展启动筹备：面向新国标升级期，搭建华东产业协作平台'
     }
   ],
   policy: [

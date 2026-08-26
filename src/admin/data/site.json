@@ -100,16 +100,34 @@
       "type": "hash",
       "children": [
         {
-          "label": "行业动态",
+          "label": "协会动态",
           "href": "./page.html?page=news"
         },
         {
-          "label": "政策法规",
-          "href": "./page.html?page=standards"
+          "label": "行业资讯",
+          "href": "./page.html?page=news"
+        },
+        {
+          "label": "展会资讯",
+          "href": "./page.html?page=news",
+          "children": [
+            {
+              "label": "CEB南京展",
+              "href": "./page.html?page=news#ceb-nanjing"
+            },
+            {
+              "label": "CEB无锡展",
+              "href": "./page.html?page=news#ceb-wuxi"
+            }
+          ]
+        },
+        {
+          "label": "政策动态",
+          "href": "./page.html?page=news#policy"
         },
         {
           "label": "通知公告",
-          "href": "./page.html?page=services"
+          "href": "./page.html?page=news#notice"
         }
       ]
     }

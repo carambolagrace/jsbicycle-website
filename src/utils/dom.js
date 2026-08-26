@@ -79,8 +79,15 @@ export function renderLayout() {
             <div class="nav-sub">
               <a href="./page.html?page=news">协会动态</a>
               <a href="./page.html?page=news">行业资讯</a>
-              <a href="./page.html?page=standards">政策动态</a>
-              <a href="./page.html?page=services">通知公告</a>
+              <div class="nav-item has-children nav-sub-parent">
+                <a class="nav-link nav-sub-link" href="./page.html?page=news">展会资讯<span class="chevron">›</span></a>
+                <div class="nav-sub nav-sub-nested">
+                  <a href="./page.html?page=news#ceb-nanjing">CEB南京展</a>
+                  <a href="./page.html?page=news#ceb-wuxi">CEB无锡展</a>
+                </div>
+              </div>
+              <a href="./page.html?page=news#policy">政策动态</a>
+              <a href="./page.html?page=news#notice">通知公告</a>
             </div>
           </div>
           <div class="nav-item has-children">

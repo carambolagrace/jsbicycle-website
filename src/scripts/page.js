@@ -77,9 +77,19 @@ function renderStandards(container) {
   `;
 }
 
-/* ---------- 数据驱动渲染：展会活动 ---------- */
-function renderEvents(container) {
-  const items = eventsList.map((evt) => {
+/* ---------- 数据驱动渲染：展会活动（数据源：后端接口，失败时回退本地数据） ---------- */
+// 后端接口地址：本地联调指向 Spring Boot (8080)，生产上线时替换为正式域名
+const EVENTS_API = 'http://localhost:8080/api/events';
+
+async function renderEvents(container) {
+  let list = eventsList;
+  try {
+    const res = await fetch(EVENTS_API);
+    if (res.ok) list = await res.json();
+  } catch (err) {
+    console.warn('[events] 后端接口不可用，使用本地数据', err);
+  }
+  const items = list.map((evt) => {
     const stats = evt.stats || {};
     const statusClass = evt.status === '报名中' ? 'open' : '';
     return `
@@ -105,7 +115,7 @@ function renderEvents(container) {
   }).join('');
 
   container.innerHTML = `
-    <div class="filter-bar"><div class="filter-tabs"><span class="filter-chip active">品牌展会</span></div><span>共 ${eventsList.length} 项展会</span></div>
+    <div class="filter-bar"><div class="filter-tabs"><span class="filter-chip active">品牌展会</span></div><span>共 ${list.length} 项展会</span></div>
     <div class="exhibition-list">
       ${items}
     </div>
@@ -292,9 +302,11 @@ if (renderers[pageKey]) {
 if (pageKey === 'news') {
   const articleList = qs('#article-list');
   if (articleList) {
+    // exhibition 类型的 data-type 使用 item.exhibition（如 ceb-nanjing / ceb-wuxi）
     const allNews = [
       ...newsList.association.map((item) => ({ ...item, type: 'association' })),
       ...newsList.industry.map((item) => ({ ...item, type: 'industry' })),
+      ...newsList.exhibition.map((item) => ({ ...item, type: item.exhibition })),
       ...newsList.policy.map((item) => ({ ...item, type: 'policy' })),
       ...newsList.notice.map((item) => ({ ...item, type: 'notice' }))
     ];
@@ -308,17 +320,38 @@ if (pageKey === 'news') {
       </a>
     `;
     }).join('');
+    // 同步右上角“共 X 条”统计
+    const countLabel = qs('.filter-bar > span');
+    if (countLabel) countLabel.textContent = `共 ${allNews.length} 条内容`;
   }
 }
 
 /* ---------- 新闻分类筛选 ---------- */
-qsa('.filter-chip').forEach((button) => button.addEventListener('click', () => {
-  const filter = button.dataset.filter;
-  qsa('.filter-chip').forEach((item) => item.classList.toggle('active', item === button));
+function applyNewsFilter(filter) {
+  // 仅对存在的 chip 过滤，防非法 hash
+  const chip = qs(`.filter-chip[data-filter="${filter}"]`);
+  if (!chip) return false;
+  qsa('.filter-chip').forEach((item) => item.classList.toggle('active', item === chip));
   qsa('#article-list > a').forEach((item) => {
     item.style.display = filter === 'all' || item.dataset.type === filter ? 'grid' : 'none';
   });
+  return true;
+}
+qsa('.filter-chip').forEach((button) => button.addEventListener('click', () => {
+  applyNewsFilter(button.dataset.filter);
 }));
+
+/* ---------- 根据 URL hash 自动触发筛选（例如 ?page=news#policy） ---------- */
+if (pageKey === 'news' && window.location.hash) {
+  const targetFilter = window.location.hash.slice(1); // 例如 'policy' / 'notice'
+  if (applyNewsFilter(targetFilter)) {
+    // 滚动到筛选区，让用户能看到过滤后的列表
+    window.setTimeout(() => {
+      const bar = qs('.filter-bar');
+      if (bar) bar.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 80);
+  }
+}
 
 /* ---------- 标准检索提交 ---------- */
 qs('#document-filter')?.addEventListener('submit', (event) => {

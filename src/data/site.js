@@ -68,9 +68,18 @@ export const site = {
       href: './index.html#news',
       type: 'hash',
       children: [
-        { label: '行业动态', href: './page.html?page=news' },
-        { label: '政策法规', href: './page.html?page=standards' },
-        { label: '通知公告', href: './page.html?page=services' }
+        { label: '协会动态', href: './page.html?page=news' },
+        { label: '行业资讯', href: './page.html?page=news' },
+        {
+          label: '展会资讯',
+          href: './page.html?page=news',
+          children: [
+            { label: 'CEB南京展', href: './page.html?page=news#ceb-nanjing' },
+            { label: 'CEB无锡展', href: './page.html?page=news#ceb-wuxi' }
+          ]
+        },
+        { label: '政策动态', href: './page.html?page=news#policy' },
+        { label: '通知公告', href: './page.html?page=news#notice' }
       ]
     }
   ],
@@ -82,7 +91,7 @@ export const site = {
   footer: {
     quickEntries: [
       { label: '关于协会', href: './page.html?page=about' },
-      { label: '新闻动态', href: './page.html?page=news' },
+      { label: '资讯动态', href: './page.html?page=news' },
       { label: '政策标准', href: './page.html?page=standards' },
       { label: '展会活动', href: './page.html?page=events' }
     ],

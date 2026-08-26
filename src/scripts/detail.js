@@ -42,6 +42,24 @@ import { standardsList } from '../data/standards.js';
 
         if (contextualBody) record.body = contextualBody;
 
+        // 展会详情 — 优先从后端接口取详情正文（detail_body），失败回退静态数据
+        if (type === 'event' && id) {
+            // 后端接口地址：本地联调指向 Spring Boot (8080)，生产上线时替换为正式域名
+            const EVENT_API = 'http://localhost:8080/api/events';
+            try {
+                const r = await fetch(`${EVENT_API}/${encodeURIComponent(id)}`, { cache: 'no-cache' });
+                if (r.ok) {
+                    const ev = await r.json();
+                    if (ev.detail_body) {
+                        record.title = ev.title || record.title;
+                        record.body = ev.detail_body;
+                    }
+                }
+            } catch (e) {
+                console.warn('[detail.js] 展会详情接口不可用，使用静态数据:', e.message);
+            }
+        }
+
         // 标准详情 — 自动从 standards.js 生成摘要 + 文件下载区
         if (type === 'standard') {
             const std = standardsList.find(s => s.id === id);

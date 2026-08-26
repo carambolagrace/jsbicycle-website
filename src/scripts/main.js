@@ -131,3 +131,66 @@ qsa('a[href="#news"], a[href="#standards"], a[href="#events"], a[href="#membersh
     window.setTimeout(() => showToast('演示页面已定位到对应服务模块'), 450);
   });
 });
+
+/* ---------- CEB 展会矩阵：后端接口取数（失败回退本地静态数据） ---------- */
+import { eventsList } from '../data/events.js';
+// 后端接口地址：本地联调指向 Spring Boot (8080)，生产上线时替换为正式域名
+const EVENTS_API = 'http://localhost:8080/api/events';
+const expoCards = qs('#expo-cards');
+const STAT_LABELS = { area: '展出面积', exhibitors: '参展企业', visitors: '参观人次', booths: '标准展位' };
+
+// 长标题在“及/与”处断行，与原有卡片排版保持一致
+function expoTitleHtml(shortTitle) {
+  const t = esc(shortTitle);
+  return t.length > 12 ? t.replace(/(及|与)/, '$1<br/>') : t;
+}
+
+function renderExpoCards(list) {
+  if (!expoCards) return;
+  if (!list || !list.length) {
+    expoCards.innerHTML = '<p class="empty" style="padding:24px;text-align:center;color:#8a97a8">暂无展会信息</p>';
+    return;
+  }
+  expoCards.innerHTML = list.map((ev) => {
+    const stats = ev.stats || {};
+    const statKeys = Object.keys(STAT_LABELS).filter((k) => stats[k]);
+    const statsHtml = statKeys.map((k) => {
+      const v = String(stats[k]);
+      const m = v.match(/^([\d,.]+[+]?)(.*)$/);
+      const num = m ? m[1] : v;
+      const unit = m ? m[2] : '';
+      return `<div><strong>${esc(num)}${unit ? '<small>' + esc(unit) + '</small>' : ''}</strong><span>${STAT_LABELS[k]}</span></div>`;
+    }).join('');
+    const status = esc(ev.status || '');
+    return `
+      <a class="expo-card" href="./detail.html?type=event&id=${esc(ev.id)}">
+        <div class="expo-card-left">
+          <span class="expo-label">${esc(ev.series || '')} · 第${esc(ev.edition || '')}</span>
+          <h3>${expoTitleHtml(ev.short_title || ev.title || '')}</h3>
+          ${ev.theme ? `<p class="expo-theme">${esc(ev.theme)}</p>` : ''}
+          <div class="expo-meta"><span>${esc(ev.date || '')}</span><span>${esc(ev.location || '')}</span></div>
+          <span class="expo-status${status === '报名中' ? ' open' : ''}">${status}</span>
+        </div>
+        <div class="expo-card-right">
+          <div class="expo-stats">${statsHtml}</div>
+          <p>${esc(ev.description || '')}</p>
+          <span class="expo-action">查看展会详情 <span>↗</span></span>
+        </div>
+      </a>
+    `;
+  }).join('');
+}
+
+(async () => {
+  try {
+    const res = await fetch(EVENTS_API);
+    if (res.ok) {
+      renderExpoCards(await res.json());
+      return;
+    }
+    throw new Error('HTTP ' + res.status);
+  } catch (err) {
+    console.warn('[expo] 后端接口不可用，使用本地数据', err);
+    renderExpoCards(eventsList);
+  }
+})();

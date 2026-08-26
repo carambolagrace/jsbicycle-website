@@ -12,6 +12,12 @@ const AUTH = (() => {
     function isLoggedIn() {
         return sessionStorage.getItem(KEY) === '1';
     }
+    // 动态定位后台登录页：兼容 /admin/ 下任意层级页面与子路径部署
+    function loginPageUrl() {
+        const path = location.pathname;
+        const idx = path.indexOf('/admin/');
+        return (idx >= 0 ? path.substring(0, idx) : '') + '/admin/index.html';
+    }
     function login(username, password) {
         const ok = VALID.some(v => v.u === username && v.p === password);
         if (ok) sessionStorage.setItem(KEY, '1');
@@ -19,11 +25,11 @@ const AUTH = (() => {
     }
     function logout() {
         sessionStorage.removeItem(KEY);
-        location.href = '../admin/index.html';
+        location.href = loginPageUrl();
     }
     function guard() {
         if (!isLoggedIn()) {
-            location.href = '../admin/index.html';
+            location.href = loginPageUrl();
         }
     }
     return { isLoggedIn, login, logout, guard };

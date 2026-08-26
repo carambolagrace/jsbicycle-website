@@ -84,12 +84,26 @@
           "href": "./page.html?page=news"
         },
         {
+          "label": "展会资讯",
+          "href": "./page.html?page=news",
+          "children": [
+            {
+              "label": "CEB南京展",
+              "href": "./page.html?page=news#ceb-nanjing"
+            },
+            {
+              "label": "CEB无锡展",
+              "href": "./page.html?page=news#ceb-wuxi"
+            }
+          ]
+        },
+        {
           "label": "政策动态",
-          "href": "./page.html?page=standards"
+          "href": "./page.html?page=news#policy"
         },
         {
           "label": "通知公告",
-          "href": "./page.html?page=services"
+          "href": "./page.html?page=news#notice"
         }
       ]
     },

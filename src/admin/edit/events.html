@@ -12,7 +12,7 @@
       <div class="brand">JBEA Admin <span>展会活动管理</span></div>
       <div class="spacer"></div>
       <a href="../dashboard.html">← 返回仪表盘</a>
-      <a href="../index.html" target="_blank">查看网站 ↗</a>
+      <a href="../../index.html" target="_blank">查看网站 ↗</a>
       <button onclick="AUTH.logout()">退出登录</button>
     </header>
     <div class="app-main">
@@ -81,7 +81,7 @@
         </div>
 
         <div class="btn-group mt-4">
-          <button class="btn btn-primary" onclick="saveAll()">保存所有修改到本地</button>
+          <button class="btn btn-primary" onclick="saveAll()">保存所有修改到服务器</button>
           <button class="btn btn-publish-events" style="background:#0a8a4a;color:#fff;font-weight:600" onclick="publishModule({key:'events', label:'展会活动', saveFn:saveAll})">🚀 发布到网站（仅本模块）</button>
           <button class="btn" onclick="Store.exportKey('events')">导出本模块 JSON</button>
           <button class="btn" onclick="resetData()">恢复默认</button>
@@ -97,12 +97,29 @@
   <script src="../js/publish-helper.js"></script>
   <script>
     AUTH.guard();
+    // 后端接口地址：本地联调指向 Spring Boot (8080)，生产上线时替换为正式域名
+    const API_BASE = 'http://localhost:8080';
     let data = [];
+    let originalIds = new Set(); // 加载时后端的 id 集合，用于保存时识别新增/删除
 
     async function init() {
-        await Store.loadAll();
-        data = Store.get('events') || [];
-        render();
+        try {
+            const res = await fetch(API_BASE + '/api/events');
+            if (res.ok) {
+                data = await res.json();
+                originalIds = new Set(data.map((e) => e.id));
+                render();
+                UI.toast('已从服务器加载 ' + data.length + ' 条展会数据', 'success');
+                return;
+            }
+            throw new Error('HTTP ' + res.status);
+        } catch (err) {
+            console.warn('[events] 后端接口不可用，回退本地缓存', err);
+            UI.toast('后端服务不可用，已加载本地缓存', 'error');
+            await Store.loadAll();
+            data = Store.get('events') || [];
+            render();
+        }
     }
 
     function render() {
@@ -188,12 +205,66 @@
         else data[+idx] = item;
         render();
         resetForm();
-        UI.toast('已保存到列表（点击下方"保存所有修改到本地"才生效）', 'success');
+        UI.toast('已保存到列表（点击下方"保存所有修改到服务器"才同步到数据库）', 'success');
     });
 
-    function saveAll() {
-        Store.set('events', data);
-        UI.toast('已保存到浏览器本地（记得导出 JSON）', 'success');
+    async function saveAll() {
+        // 同步到服务器：新增(POST) / 更新(PUT) / 删除(DELETE)
+        let okCount = 0;
+        const fails = [];
+        for (const item of data) {
+            const exists = originalIds.has(item.id);
+            try {
+                const res = await fetch(API_BASE + '/api/events' + (exists ? '/' + encodeURIComponent(item.id) : ''), {
+                    method: exists ? 'PUT' : 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(item)
+                });
+                if (res.ok) {
+                    okCount++;
+                } else {
+                    fails.push(item.id + '(HTTP ' + res.status + ')');
+                }
+            } catch (err) {
+                fails.push(item.id + '(网络错误)');
+                console.warn('[events] 同步失败', item.id, err);
+            }
+        }
+        // 删除已从列表移除的条目
+        for (const id of originalIds) {
+            if (!data.some((e) => e.id === id)) {
+                try {
+                    const res = await fetch(API_BASE + '/api/events/' + encodeURIComponent(id), { method: 'DELETE' });
+                    if (res.ok || res.status === 404) okCount++;
+                    else fails.push(id + '(删除 HTTP ' + res.status + ')');
+                } catch (err) {
+                    fails.push(id + '(删除网络错误)');
+                }
+            }
+        }
+        originalIds = new Set(data.map((e) => e.id));
+        Store.set('events', data); // 同步保留本地缓存
+        if (fails.length === 0) {
+            UI.toast('已同步到服务器：' + okCount + ' 个操作全部成功，正在回读数据库确认…', 'success');
+            await refreshFromServer();
+        } else {
+            UI.toast('同步完成：成功 ' + okCount + '，失败 ' + fails.length + ' → ' + fails.join('；'), 'error');
+        }
+    }
+
+    // 保存后从后端重新拉取数据，确认已落库并刷新列表
+    async function refreshFromServer() {
+        try {
+            const res = await fetch(API_BASE + '/api/events');
+            if (res.ok) {
+                data = await res.json();
+                originalIds = new Set(data.map((e) => e.id));
+                render();
+                UI.toast('已确认数据库最新 ' + data.length + ' 条数据', 'success');
+            }
+        } catch (err) {
+            console.warn('[events] 保存后回读失败', err);
+        }
     }
     async function resetData() {
         if (!confirm('恢复默认会丢弃所有修改。继续？')) return;

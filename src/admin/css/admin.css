@@ -1,4 +1,4 @@
-/* 江苏省自行车电动车协会 - 后台管理系统 */
+/* 姹熻嫃鐪佽嚜琛岃溅鐢靛姩杞﹀崗浼?- 鍚庡彴绠＄悊绯荤粺 */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; }
 body {
@@ -10,7 +10,7 @@ a { color: #1a73c5; text-decoration: none; }
 button { font-family: inherit; cursor: pointer; }
 input, textarea, select { font-family: inherit; font-size: 14px; }
 
-/* === 登录页 === */
+/* === 鐧诲綍椤?=== */
 .login-page {
     min-height: 100vh;
     display: grid; place-items: center;
@@ -56,7 +56,7 @@ input, textarea, select { font-family: inherit; font-size: 14px; }
 }
 .login-hint { margin-top: 18px; text-align: center; color: #9ba6b3; font-size: 12px; }
 
-/* === 主框架 === */
+/* === 涓绘鏋?=== */
 .app-shell { min-height: 100vh; display: flex; flex-direction: column; }
 .app-header {
     background: #1e3a5f; color: #fff;
@@ -106,7 +106,7 @@ input, textarea, select { font-family: inherit; font-size: 14px; }
 }
 .page-subtitle { color: #6c7a8f; font-size: 13px; margin-bottom: 22px; }
 
-/* === 卡片 === */
+/* === 鍗＄墖 === */
 .card {
     background: #fff;
     border-radius: 8px;
@@ -121,7 +121,7 @@ input, textarea, select { font-family: inherit; font-size: 14px; }
 .card-head h3 { font-size: 14.5px; font-weight: 600; flex: 1; }
 .card-body { padding: 18px; }
 
-/* === 按钮 === */
+/* === 鎸夐挳 === */
 .btn {
     padding: 8px 16px; border-radius: 5px;
     border: 1px solid #d6dde5; background: #fff; color: #404f63;
@@ -138,7 +138,7 @@ input, textarea, select { font-family: inherit; font-size: 14px; }
 .btn-sm { padding: 5px 10px; font-size: 12px; }
 .btn-group { display: flex; gap: 8px; }
 
-/* === 表单 === */
+/* === 琛ㄥ崟 === */
 .field { margin-bottom: 14px; }
 .field label { display: block; font-size: 12.5px; color: #5a6678; margin-bottom: 5px; font-weight: 500; }
 .field input[type=text], .field input[type=url], .field input[type=date], .field input[type=number],
@@ -157,7 +157,7 @@ input, textarea, select { font-family: inherit; font-size: 14px; }
 .field-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
 .help { font-size: 11.5px; color: #9ba6b3; margin-top: 4px; }
 
-/* === 列表 === */
+/* === 鍒楄〃 === */
 .list { background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,.04); }
 .list-item {
     padding: 12px 18px;
@@ -185,7 +185,7 @@ input, textarea, select { font-family: inherit; font-size: 14px; }
 .tag-green { background: #e8f5ed; color: #2d8c4d; }
 .tag-orange { background: #fff3e0; color: #c87b13; }
 
-/* === 工具条 === */
+/* === 宸ュ叿鏉?=== */
 .toolbar {
     display: flex; align-items: center; gap: 10px;
     margin-bottom: 16px;
@@ -193,7 +193,7 @@ input, textarea, select { font-family: inherit; font-size: 14px; }
 .toolbar .left, .toolbar .right { display: flex; gap: 8px; align-items: center; }
 .toolbar .right { margin-left: auto; }
 
-/* === 提示条 === */
+/* === 鎻愮ず鏉?=== */
 .toast {
     position: fixed; bottom: 24px; right: 24px;
     background: #1f2a3a; color: #fff;
@@ -241,7 +241,7 @@ input, textarea, select { font-family: inherit; font-size: 14px; }
     display: flex; gap: 8px; justify-content: flex-end;
 }
 
-/* === 工具类 === */
+/* === 宸ュ叿绫?=== */
 .text-muted { color: #6c7a8f; }
 .text-sm { font-size: 12px; }
 .mt-2 { margin-top: 8px; } .mt-4 { margin-top: 16px; } .mt-6 { margin-top: 24px; }
@@ -308,7 +308,7 @@ input, textarea, select { font-family: inherit; font-size: 14px; }
     .field-row, .field-row-3 { grid-template-columns: 1fr; }
 }
 
-/* === PDF 上传 === */
+/* === PDF 涓婁紶 === */
 .pdf-upload-row {
     display: flex; gap: 12px; align-items: center;
     padding: 10px 0;
@@ -354,3 +354,4 @@ input, textarea, select { font-family: inherit; font-size: 14px; }
 .alert a {
     color: inherit; text-decoration: underline; font-weight: 600;
 }
+/* 鏁版嵁鏉ユ簮寰芥爣锛坋vents 濉姤椤碉級 */
