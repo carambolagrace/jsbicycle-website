@@ -94,6 +94,7 @@
         </div>
 
         <div class="btn-group mt-4">
+          <button class="btn btn-publish-footer" style="background:#0a8a4a;color:#fff;font-weight:600" onclick="publishModule({key:'footer', label:'底部信息', saveFn:save})">🚀 发布到网站（仅本模块）</button>
           <button class="btn btn-primary" onclick="save()">保存所有修改</button>
           <button class="btn" onclick="reset()">恢复默认</button>
           <button class="btn" onclick="Store.exportKey('footer')">导出本模块 JSON</button>
@@ -105,6 +106,8 @@
   <script src="../js/auth.js"></script>
   <script src="../js/ui.js"></script>
   <script src="../js/store.js"></script>
+  <script src="../js/github.js"></script>
+  <script src="../js/publish-helper.js"></script>
   <script>
     AUTH.guard();
     let data = null;
