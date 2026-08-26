@@ -79,9 +79,23 @@ export default defineConfig({
       }
     },
     {
-      // 复制 admin/edit/*.html 到 dist/admin/edit/
+      // 复制 admin/*.html + 子目录到 dist/admin/
       name: 'copy-admin-edit',
       closeBundle() {
+        // 1. 复制 admin/*.html 根目录文件 (dashboard, index, github-config) → dist/admin/
+        const srcAdminRoot = resolve(__dirname, 'src/admin');
+        const distAdminRoot = resolve(__dirname, 'dist/admin');
+        if (fs.existsSync(srcAdminRoot)) {
+          fs.mkdirSync(distAdminRoot, { recursive: true });
+          for (const file of fs.readdirSync(srcAdminRoot)) {
+            const sp = resolve(srcAdminRoot, file);
+            const dp = resolve(distAdminRoot, file);
+            if (fs.statSync(sp).isFile() && file.endsWith('.html')) {
+              fs.copyFileSync(sp, dp);
+            }
+          }
+        }
+        // 2. 复制 admin/edit/*.html → dist/admin/edit/
         const srcDir = resolve(__dirname, 'src/admin/edit');
         const destDir = resolve(__dirname, 'dist/admin/edit');
         if (fs.existsSync(srcDir)) {
