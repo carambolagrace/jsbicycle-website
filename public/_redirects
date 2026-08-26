@@ -6,22 +6,22 @@
 /page /page.html 200
 /detail /detail.html 200
 
-# 后台管理 — 友好 URL
-/admin /admin/index.html 200
-/admin/index /admin/index.html 200
-/admin/dashboard /admin/dashboard.html 200
-/admin/github-config /admin/github-config.html 200
-/admin/edit/news /admin/edit/news.html 200
-/admin/edit/standards /admin/edit/standards.html 200
-/admin/edit/events /admin/edit/events.html 200
-/admin/edit/magazines /admin/edit/magazines.html 200
-/admin/edit/branches /admin/edit/branches.html 200
-/admin/edit/wuxi-office /admin/edit/wuxi-office.html 200
-/admin/edit/downloads /admin/edit/downloads.html 200
-/admin/edit/homepage /admin/edit/homepage.html 200
-/admin/edit/navigation /admin/edit/navigation.html 200
-/admin/edit/footer /admin/edit/footer.html 200
-/admin/edit/pages /admin/edit/pages.html 200
-/admin/edit/details /admin/edit/details.html 200
+# 后台管理 — 友好 URL (用 301 显式重定向，避免 rewrite 触发重定向循环)
+/admin /admin/index.html 301
+/admin/index /admin/index.html 301
+/admin/dashboard /admin/dashboard.html 301
+/admin/github-config /admin/github-config.html 301
+/admin/edit/news /admin/edit/news.html 301
+/admin/edit/standards /admin/edit/standards.html 301
+/admin/edit/events /admin/edit/events.html 301
+/admin/edit/magazines /admin/edit/magazines.html 301
+/admin/edit/branches /admin/edit/branches.html 301
+/admin/edit/wuxi-office /admin/edit/wuxi-office.html 301
+/admin/edit/downloads /admin/edit/downloads.html 301
+/admin/edit/homepage /admin/edit/homepage.html 301
+/admin/edit/navigation /admin/edit/navigation.html 301
+/admin/edit/footer /admin/edit/footer.html 301
+/admin/edit/pages /admin/edit/pages.html 301
+/admin/edit/details /admin/edit/details.html 301
 
 # Force rebuild trigger (2026-08-25 13:15)
