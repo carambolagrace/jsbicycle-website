@@ -77,10 +77,10 @@ export function renderLayout() {
           <div class="nav-item has-children">
             <a class="nav-link" href="./page.html?page=news">资讯动态<span class="chevron">▾</span></a>
             <div class="nav-sub">
-              <a href="./page.html?page=news">协会动态</a>
-              <a href="./page.html?page=news">行业资讯</a>
-              <a href="./page.html?page=standards">政策动态</a>
-              <a href="./page.html?page=services">通知公告</a>
+              <a href="./page.html?page=news&cat=association">协会动态</a>
+              <a href="./page.html?page=news&cat=industry">行业资讯</a>
+              <a href="./page.html?page=news&cat=policy">政策动态</a>
+              <a href="./page.html?page=news&cat=notice">通知公告</a>
             </div>
           </div>
           <div class="nav-item has-children">
@@ -146,11 +146,13 @@ export function renderLayout() {
         <button class="modal-close" type="button" aria-label="关闭搜索">×</button>
         <p class="section-kicker">SEARCH / 站内搜索</p>
         <h2>查找协会内容</h2>
-        <form class="search-form">
+        <form class="search-form" autocomplete="off">
           <input type="search" placeholder="输入关键词，例如：新国标、入会、展会" aria-label="搜索关键词" />
           <button type="submit">搜索 <span>↗</span></button>
         </form>
         <p class="search-hint">建议搜索：电池安全 · 团体标准 · 无锡展 · 会员申请</p>
+        <div class="search-status" id="search-status"></div>
+        <div class="search-results" id="search-results" aria-live="polite"></div>
       </div>
     </div>
     <div class="toast" role="status" aria-live="polite"></div>
@@ -193,32 +195,146 @@ export function initNavigation() {
 }
 
 /**
- * 初始化搜索弹窗
+ * 初始化搜索弹窗（真正从各 admin/data JSON 索引搜索）
  */
+let SEARCH_INDEX_CACHE = null;
+
+async function buildSearchIndex() {
+    if (SEARCH_INDEX_CACHE) return SEARCH_INDEX_CACHE;
+    const sources = [
+        { url: './admin/data/news.json', category: 'news', categoryLabel: '新闻动态' },
+        { url: './admin/data/standards.json', category: 'standards', categoryLabel: '政策标准' },
+        { url: './admin/data/events.json', category: 'events', categoryLabel: '展会活动' },
+        { url: './admin/data/branches.json', category: 'branches', categoryLabel: '分支机构' },
+        { url: './admin/data/magazines.json', category: 'magazines', categoryLabel: '行业杂志' },
+        { url: './admin/data/downloads.json', category: 'downloads', categoryLabel: '资料下载' },
+        { url: './admin/data/wuxiOffice.json', category: 'wuxiOffice', categoryLabel: '无锡办公室' },
+        { url: './admin/data/pages.json', category: 'pages', categoryLabel: '栏目页' }
+    ];
+    const all = [];
+    for (const src of sources) {
+        try {
+            const res = await fetch(src.url, { cache: 'no-cache' });
+            if (!res.ok) continue;
+            const data = await res.json();
+            if (Array.isArray(data)) {
+                data.forEach(item => {
+                    const title = item.title || item.name || item.id || '(无标题)';
+                    const summary = item.summary || item.description || item.content || '';
+                    const id = item.id || item.key || title;
+                    all.push({
+                        title: String(title),
+                        summary: String(summary).substring(0, 200),
+                        url: item.url || ('./detail.html?type=' + src.category + '&id=' + encodeURIComponent(id)),
+                        category: src.category,
+                        categoryLabel: src.categoryLabel
+                    });
+                });
+            }
+        } catch (e) { /* ignore */ }
+    }
+    SEARCH_INDEX_CACHE = all;
+    return all;
+}
+
+function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+function highlight(text, keyword) {
+    if (!keyword) return escapeHtml(text);
+    const re = new RegExp('(' + keyword.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&') + ')', 'gi');
+    return escapeHtml(text).replace(re, '<mark>$1</mark>');
+}
+
+function searchIndex(index, keyword, maxResults) {
+    if (!index || !keyword) return [];
+    const k = keyword.toLowerCase();
+    const results = [];
+    for (const item of index) {
+        const t = (item.title || '').toLowerCase();
+        const s = (item.summary || '').toLowerCase();
+        const inTitle = t.indexOf(k) >= 0;
+        const inSummary = s.indexOf(k) >= 0;
+        if (inTitle || inSummary) {
+            const score = (inTitle ? 10 : 0) + (inSummary ? 1 : 0);
+            results.push(Object.assign({}, item, { score: score }));
+        }
+    }
+    results.sort((a, b) => b.score - a.score);
+    return results.slice(0, maxResults || 20);
+}
+
+function renderSearchResults(results, keyword) {
+    const list = qs('#search-results');
+    if (!list) return;
+    if (results.length === 0) {
+        list.innerHTML = '<div class="search-empty">未找到与 “' + escapeHtml(keyword) + '” 相关的内容，请尝试其他关键词。</div>';
+        return;
+    }
+    list.innerHTML = results.map(r =>
+        '<a class="search-result-item" href="' + r.url + '">' +
+        '<span class="search-result-cat">' + escapeHtml(r.categoryLabel) + '</span>' +
+        '<h3 class="search-result-title">' + highlight(r.title, keyword) + '</h3>' +
+        '<p class="search-result-summary">' + highlight(r.summary, keyword) + '</p>' +
+        '<span class="search-result-arrow">查看详情 ↗</span>' +
+        '</a>'
+    ).join('');
+}
+
 export function initSearch() {
-  const searchModal = qs('.search-modal');
-  const searchInput = qs('.search-form input');
-  const open = () => {
-    searchModal?.classList.add('is-open');
-    searchModal?.setAttribute('aria-hidden', 'false');
-    window.setTimeout(() => searchInput?.focus(), 180);
-  };
-  const close = () => {
-    searchModal?.classList.remove('is-open');
-    searchModal?.setAttribute('aria-hidden', 'true');
-  };
-  qs('.search-button')?.addEventListener('click', open);
-  qs('.modal-close')?.addEventListener('click', close);
-  qs('.search-modal-backdrop')?.addEventListener('click', close);
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
-  qs('.search-form')?.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const keyword = searchInput?.value.trim();
-    if (!keyword) { showToast('请输入要搜索的关键词'); return; }
-    close();
-    showToast(`已为你准备"${keyword}"的搜索结果`);
-  });
-  qs('.document-search')?.addEventListener('click', open);
+    const searchModal = qs('.search-modal');
+    const searchInput = qs('.search-form input');
+    const searchForm = qs('.search-form');
+    const resultsBox = qs('#search-results');
+    const statusBox = qs('#search-status');
+    const open = () => {
+        searchModal?.classList.add('is-open');
+        searchModal?.setAttribute('aria-hidden', 'false');
+        window.setTimeout(() => searchInput?.focus(), 180);
+    };
+    const close = () => {
+        searchModal?.classList.remove('is-open');
+        searchModal?.setAttribute('aria-hidden', 'true');
+    };
+    qs('.search-button')?.addEventListener('click', open);
+    qs('.modal-close')?.addEventListener('click', close);
+    qs('.search-modal-backdrop')?.addEventListener('click', close);
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+    qs('.document-search')?.addEventListener('click', open);
+
+    let debounceTimer = null;
+    const doSearch = async (raw) => {
+        const keyword = (raw || '').trim();
+        if (!keyword) {
+            if (resultsBox) resultsBox.innerHTML = '';
+            if (statusBox) statusBox.textContent = '提示：输入关键词后会从所有内容中搜索。';
+            return;
+        }
+        if (keyword.length < 2) {
+            if (resultsBox) resultsBox.innerHTML = '';
+            if (statusBox) statusBox.textContent = '请输入至少 2 个字符…';
+            return;
+        }
+        if (statusBox) statusBox.textContent = '搜索中…';
+        const index = await buildSearchIndex();
+        const results = searchIndex(index, keyword, 20);
+        if (statusBox) statusBox.textContent = '共找到 ' + results.length + ' 条结果';
+        renderSearchResults(results, keyword);
+    };
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            const v = e.target.value;
+            window.clearTimeout(debounceTimer);
+            debounceTimer = window.setTimeout(() => doSearch(v), 250);
+        });
+    }
+    if (searchForm) {
+        searchForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (searchInput) doSearch(searchInput.value);
+        });
+    }
 }
 
 /**
