@@ -81,7 +81,7 @@
 
         <div class="btn-group mt-4">
           <button class="btn btn-primary" onclick="saveAll()">保存所有修改到本地</button>
-          <button id="publishBtn" class="btn" style="background:#0a8a4a;color:#fff;font-weight:600" onclick="publishThisModule()">🚀 发布到网站（仅本模块）</button>
+          <button class="btn btn-publish-standards" style="background:#0a8a4a;color:#fff;font-weight:600" onclick="publishModule({key:'standards', label:'政策标准', saveFn:saveAll})">🚀 发布到网站（仅本模块）</button>
           <button class="btn" onclick="Store.exportKey('standards')">导出 JSON</button>
           <button class="btn" onclick="resetData()">恢复默认</button>
         </div>
@@ -93,6 +93,7 @@
   <script src="../js/ui.js"></script>
   <script src="../js/store.js"></script>
   <script src="../js/github.js"></script>
+  <script src="../js/publish-helper.js"></script>
   <script>
     AUTH.guard();
     let data = [];
@@ -196,32 +197,6 @@
           input.value = '';
         }
       });
-    }
-
-    /* ========== 单模块发布到网站 ========== */
-    async function publishThisModule() {
-        const btn = document.getElementById('publishBtn');
-        if (!GitHub.isConfigured()) {
-            UI.toast('请先在 “⚙ GitHub 自动部署” 配置仓库信息', 'error');
-            window.location.href = '../github-config.html';
-            return;
-        }
-        if (!confirm('仅发布【政策标准】模块到网站？其他模块不受影响。\n\n发布后 Cloudflare Pages 将自动构建部署，约 1-3 分钟生效。')) return;
-        // 先同步当前表单到列表并保存到本地
-        saveAll();
-        const oldText = btn ? btn.textContent : '';
-        if (btn) { btn.disabled = true; btn.textContent = '⏳ 发布中…'; }
-        try {
-            await GitHub.publishStandards();
-            UI.toast('🎉【政策标准】发布成功！1-3 分钟后前台生效', 'success');
-            if (btn) btn.textContent = '✅ 已发布（再点可重新发布）';
-        } catch (e) {
-            console.error('[publishThisModule] 失败：', e);
-            UI.toast('❌ 发布失败：' + e.message, 'error');
-            if (btn) btn.textContent = oldText;
-        } finally {
-            if (btn) setTimeout(() => { btn.disabled = false; }, 1500);
-        }
     }
 
     init();
