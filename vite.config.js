@@ -9,7 +9,9 @@ import fs from 'fs';
 export default defineConfig({
   root: 'src',
   base: './',
-  publicDir: '../public',
+  // publicDir 用项目内 public/，vite 会自动拷贝到 dist 根
+  // （老配置是仓库外 ../public，不走 git，已弃用）
+  publicDir: resolve(__dirname, 'public'),
   build: {
     outDir: '../dist',
     emptyOutDir: true,
@@ -17,20 +19,54 @@ export default defineConfig({
     sourcemap: false,
     cssCodeSplit: true,
     target: 'es2018',
+    chunkSizeWarningLimit: 1024,
     rollupOptions: {
       input: {
         index: resolve(__dirname, 'src/pages/index.html'),
         page: resolve(__dirname, 'src/pages/page.html'),
-        detail: resolve(__dirname, 'src/pages/detail.html'),
-        'admin/index': resolve(__dirname, 'src/admin/index.html'),
-        'admin/dashboard': resolve(__dirname, 'src/admin/dashboard.html'),
-        'admin/github-config': resolve(__dirname, 'src/admin/github-config.html')
+        detail: resolve(__dirname, 'src/pages/detail.html')
       }
     }
   },
   plugins: [
     {
-      // build 后把 dist/pages/*.html 移到 dist/ 根目录（surge 部署需要）
+      // 复制仓库根 data/news/ 目录 (表单备份) → dist/data/news/
+      // 让前端 fetch https://www.jsbeva.cn/data/news/news_N_ts.json 能访问
+      name: 'copy-data-news',
+      closeBundle() {
+        const srcDir = resolve(__dirname, 'data/news');
+        const destDir = resolve(__dirname, 'dist/data/news');
+        if (fs.existsSync(srcDir)) {
+          fs.mkdirSync(destDir, { recursive: true });
+          for (const file of fs.readdirSync(srcDir)) {
+            const srcPath = resolve(srcDir, file);
+            const destPath = resolve(destDir, file);
+            if (fs.statSync(srcPath).isFile()) {
+              fs.copyFileSync(srcPath, destPath);
+            }
+          }
+          console.log('[copy-data-news] 复制了 ' + fs.readdirSync(srcDir).length + ' 个表单备份文件到 dist/data/news/');
+        }
+      }
+    },
+    {
+      // 复制 dist/data/news/ 下生成一个动态的 index.json
+      // 列出所有 news_*.json 文件名（前端用这个 list 来 bulk fetch）
+      name: 'generate-news-index',
+      closeBundle() {
+        const srcDir = resolve(__dirname, 'data/news');
+        const destDir = resolve(__dirname, 'dist/data/news');
+        if (fs.existsSync(srcDir)) {
+          fs.mkdirSync(destDir, { recursive: true });
+          const files = fs.readdirSync(srcDir)
+            .filter((f) => /^news_\d+_\d+\.json$/.test(f))
+            .sort();
+          const indexData = { generatedAt: new Date().toISOString(), count: files.length, files: files };
+          fs.writeFileSync(resolve(destDir, 'index.json'), JSON.stringify(indexData, null, 2));
+        }
+      }
+    },
+    {
       name: 'move-pages-html-to-root',
       closeBundle() {
         const pagesDir = resolve(__dirname, 'dist/pages');
@@ -54,14 +90,13 @@ export default defineConfig({
             fs.copyFileSync(resolve(srcDir, file), resolve(destDir, file));
           }
         }
-        // 复制 admin/data/*.json
+        // 复制 admin/data 全部内容（递归，包括 news-detail/ 子目录）
         const srcData = resolve(__dirname, 'src/admin/data');
         const destData = resolve(__dirname, 'dist/admin/data');
         if (fs.existsSync(srcData)) {
-          fs.mkdirSync(destData, { recursive: true });
-          for (const file of fs.readdirSync(srcData)) {
-            fs.copyFileSync(resolve(srcData, file), resolve(destData, file));
-          }
+            fs.mkdirSync(destData, { recursive: true });
+            // 使用 cpSync 递归复制 — 可含子目录
+            fs.cpSync(srcData, destData, { recursive: true });
         }
         // 复制 admin/css 和 admin/js
         for (const sub of ['css', 'js']) {
